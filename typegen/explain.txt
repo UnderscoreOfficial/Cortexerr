@@ -1,0 +1,12 @@
+Ok pnpm run build, will run the tsc building of the .d.ts type declarations
+  on app, core, partial, and additive. 
+
+it then uses its merge.ts script to merge typedocs within the docs folder
+  with types its able to find existing in dist.
+
+final types with any merged tsdocs will be in merged, any docs it could not
+  merge will be in not-transfered (likely changed names or old docs).
+
+
+for changes ran here to be reflected back in the core app the build, merge
+  must becalled and pnpm install ran at the app.

@@ -1,0 +1,26 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "stripInternal": true,
+    "composite": false
+  },
+  "include": ["../app/src/**/*", "../core/src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "docs",
+    "merged",
+    "not-transferred",
+    "../app/dist",
+    "../app/node_modules/",
+    "../app/tsconfig.json",
+    "../app/src/old/",
+    "../core/dist",
+    "../core/merged/",
+    "../core/node_modules/",
+    "../core/tsconfig.json",
+  ]
+}
