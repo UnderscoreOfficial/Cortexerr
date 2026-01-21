@@ -1,0 +1,27 @@
+{
+  "name": "@cortexerr/typegen",
+  "version": "1.0.0",
+  "description": "Cortexerr typegen.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json & tsx src/merge.ts",
+    "dev": "tsx src/merge.ts",
+    "test": "vitest",
+    "validate": "npx tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "underscore",
+  "license": "GPL-3.0",
+  "type": "module",
+  "main": "dist/index.d.ts",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "glob": "^13.0.0",
+    "jest": "^30.2.0",
+    "ts-morph": "^27.0.2",
+    "vitest": "^4.0.17"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "private": true,
+  "name": "Cortexerr-Monorepo",
+  "version": "1.0.0",
+  "description": "Sonarr & raddar - logic ranking ",
+  "workspaces": [
+    "app",
+    "typegen",
+    "core",
+    "partial",
+    "additive"
+  ],
+  "scripts": {
+    "build:types": "pnpm --filter ./typegen build && pnpm --filter ./app install",
+    "build:deps": "pnpm --filter ./core build && pnpm --filter ./typegen build && pnpm --filter ./app install",
+    "build:app": "pnpm --filter ./app build",
+    "start": "pnpm --filter ./app start",
+    "dev": "pnpm --filter ./app dev"
+  },
+  "keywords": [],
+  "author": "underscore",
+  "license": "GPL-3.0",
+  "type": "module",
+  "devDependencies": {
+    "@eslint/compat": "^2.0.1",
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "prettier": "^3.8.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.1"
+  }
+}
