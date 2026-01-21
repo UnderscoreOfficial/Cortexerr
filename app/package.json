@@ -1,6 +1,6 @@
 {
   "name": "Cortexerr",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Sonarr & raddar - logic ranking overhaul, fixing various oversights and lack of dynamic ranking of results, primarly focused on highest fidelity results.",
   "scripts": {
     "build": "tsc",
