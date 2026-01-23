@@ -57,7 +57,7 @@ type SabnzbdQueueResponse = {
     have_quota: boolean;
   };
 };
-export declare class Debrid {
+export declare class RDTClient {
   #private;
   magnet: string;
   hash: string;
