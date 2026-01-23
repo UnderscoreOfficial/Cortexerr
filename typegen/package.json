@@ -20,8 +20,6 @@
   "devDependencies": {
     "@types/node": "^25.0.9",
     "glob": "^13.0.0",
-    "jest": "^30.2.0",
-    "ts-morph": "^27.0.2",
-    "vitest": "^4.0.17"
+    "ts-morph": "^27.0.2"
   }
 }

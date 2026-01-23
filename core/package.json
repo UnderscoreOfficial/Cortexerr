@@ -32,6 +32,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "test": "vitest",
     "dev": "tsx src/test.ts"
   },
   "publishConfig": {
@@ -48,6 +49,7 @@
     "xpath": "^0.0.34"
   },
   "devDependencies": {
-    "@ctrl/shared-torrent": "^6.5.0"
+    "@ctrl/shared-torrent": "^6.5.0",
+    "@types/node": "^25.0.9"
   }
 }
