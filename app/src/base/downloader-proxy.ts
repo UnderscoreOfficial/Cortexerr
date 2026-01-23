@@ -31,8 +31,8 @@ const app = express();
 app.use(express.urlencoded({ extended: true })); // Parse POST form data
 
 const categories: Record<string, {}> = {
-  tv_sonarr: { savePath: "/sonarr" },
-  movie_radarr: { savePath: "/radarr" },
+  tv_sonarr: { savePath: args.sonarr_download_path },
+  movie_radarr: { savePath: args.radarr_download_path },
 };
 
 function toStringValue(value: unknown): string {
@@ -66,6 +66,7 @@ app.post(
         "query",
         "id",
         "tvdbid",
+        "type",
         "year",
         "season",
         "episode",
@@ -101,7 +102,10 @@ app.post(
           status: {
             progress: 0,
             state: "downloading",
-            save_path: args.download_path,
+            save_path:
+              String(fields.get("type")) == "sonarr"
+                ? args.sonarr_download_path
+                : args.radarr_download_path,
             completed: false,
           },
           request,
@@ -209,7 +213,7 @@ app.use(async (req, res) => {
       if (request.category == "tv_sonarr") {
         build_queue_response.name = `${request.search_query.replaceAll(" ", ".")}.${request.release}`;
       } else {
-        build_queue_response.name = request.search_query;
+        build_queue_response.name = request.search_query.replaceAll(" ", ".");
       }
 
       response_queue.push(build_queue_response);
