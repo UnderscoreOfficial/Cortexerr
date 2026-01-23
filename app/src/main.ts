@@ -1,13 +1,15 @@
 // import "./core/args.js";
 import "@cortexerr/core/args.js";
 
-// import { args, Qbittorrent, Sabnzbd } from "@cortexerr/core";
-
-import "./old/sonarr-proxy.js";
 import "./base/indexer-proxy.js";
 import "./base/downloader-proxy.js";
 
-import { args, Debrid, Jackett, logger, Utils } from "@cortexerr/core";
+import { args, RDTClient, Jackett, logger, Utils } from "@cortexerr/core";
+
+if (args.debug) {
+  await import("./debug/sonarr-proxy.js");
+  logger.info("## DEBUG MODE ##");
+}
 
 console.log(args);
 

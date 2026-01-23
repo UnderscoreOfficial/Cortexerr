@@ -24,7 +24,7 @@ const services = [
   "radarr",
   "jackett",
   "hydra",
-  "qbittorrent",
+  "rdtclient",
   "sabnzbd",
 ] as const;
 type Services = Record<(typeof services)[number], URL>;
@@ -61,9 +61,9 @@ export const CONST = {
   HYDRA_API_KEY: process.env["HYDRA_API_KEY"],
 
   // [first class] debrid (torrents) only
-  QBITTORRENT_PORT: "8080",
-  QBITTORRENT_USERNAME: process.env["QBITTORRENT_USERNAME"],
-  QBITTORRENT_PASSWORD: process.env["QBITTORRENT_PASSWORD"],
+  RDTCLIENT_PORT: "6500",
+  RDTCLIENT_USERNAME: process.env["RDTCLIENT_USERNAME"],
+  RDTCLIENT_PASSWORD: process.env["RDTCLIENT_PASSWORD"],
 
   // [first class] usenet only
   SABNZBD_PORT: "8080",
@@ -73,6 +73,10 @@ export const CONST = {
 // args
 const parsed_args = parseArgs({
   options: {
+    debug: {
+      type: "boolean", // only enable for debuging
+      default: false,
+    },
     host: {
       type: "string", // poxy - host:ip format
     },
@@ -92,9 +96,9 @@ const parsed_args = parseArgs({
       type: "string", // hydra - host:ip format
       default: `${CONST.ADDRESS}:${CONST.HYDRA_PORT}`,
     },
-    qbittorrent: {
-      type: "string", // qbittorrent - host:ip format
-      default: `${CONST.ADDRESS}:${CONST.QBITTORRENT_PORT}`,
+    rdtclient: {
+      type: "string", // rdtclient - host:ip format
+      default: `${CONST.ADDRESS}:${CONST.RDTCLIENT_PORT}`,
     },
     sabnzbd: {
       type: "string", // sabnzbd - host:ip format
@@ -134,8 +138,8 @@ function validateEnvs() {
   }
   if (
     !CONST.SABNZBD_API_KEY &&
-    !CONST.QBITTORRENT_PASSWORD &&
-    !CONST.QBITTORRENT_USERNAME
+    !CONST.RDTCLIENT_PASSWORD &&
+    !CONST.RDTCLIENT_USERNAME
   ) {
     errors.push(
       "Sabnzbd Api key & Debrids login credentials are missing, at least one is required!",
