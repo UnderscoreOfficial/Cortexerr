@@ -1,9 +1,13 @@
-import { args } from "./args.js";
-import { SonarrApi } from "./sonarr-api.js";
+import { args, logger } from "./args.js";
+import { SonarrApi, RadarrApi } from "./stack-apis.js";
 
 console.log(args);
 
-SonarrApi.getQueue();
+// const data = await RadarrApi.getMovie(177572);
+// logger.info(data);
+// console.log(data);
+
+// SonarrApi.getQueue();
 
 // const results = await Jackett.tvSearch({
 //   tvdb_id: "371028",
