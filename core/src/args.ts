@@ -21,6 +21,7 @@ export const logger = pino({
 
 const services = [
   "sonarr",
+  "radarr",
   "jackett",
   "hydra",
   "qbittorrent",
@@ -39,18 +40,17 @@ type Args = Omit<typeof parsed_args.values, keyof FormattedArgs> &
 // default constant references
 export const CONST = {
   ADDRESS: "http://127.0.0.1",
-
-  // proxy address (this is where sonarr will be now)
   HOST_PORT: "8989",
 
   // sonarr cannot have the same port as proxy best to change off default so other services still work properly
-  SONARR_PORT: "9118",
+  SONARR_PORT: "8989",
   SONARR_API_KEY: process.env["SONARR_API_KEY"],
 
-  // key note on services by design Hydra is treated as usenet only if torrents are included it will break things
+  RADARR_PORT: "7878",
+  RADARR_API_KEY: process.env["RADARR_API_KEY"],
+
+  // Hydra is treated as usenet only! if torrents are included it will break things
   // jackett is treated as torrents only
-  // and prowlarr will work with usenet & torrents
-  // jackett and hydra are first class as such there generally recomended to use over prowlarr
 
   // [first class] torrent only
   JACKETT_PORT: "9117",
@@ -79,6 +79,10 @@ const parsed_args = parseArgs({
     sonarr: {
       type: "string", // sonarr - host:ip format
       default: `${CONST.ADDRESS}:${CONST.SONARR_PORT}`,
+    },
+    radarr: {
+      type: "string", // radarr - host:ip format
+      default: `${CONST.ADDRESS}:${CONST.RADARR_PORT}`,
     },
     jackett: {
       type: "string", // jackett - host:ip format
@@ -122,9 +126,9 @@ function validateEnvs() {
   if (!CONST.SONARR_API_KEY) {
     errors.push("Sonarr Api key missing!");
   }
-  // if (!CONST.RADARR_API_KEY) {
-  //   throw new Error("Radarr Api key missing");
-  // }
+  if (!CONST.RADARR_API_KEY) {
+    throw new Error("Radarr Api key missing");
+  }
   if (!CONST.HYDRA_API_KEY && !CONST.JACKETT_API_KEY) {
     errors.push("Hydra & Jackett Api key missing, at least one is required!");
   }

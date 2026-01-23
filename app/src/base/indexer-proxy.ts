@@ -2,7 +2,16 @@ import bencode from "bencode";
 import express from "express";
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 import xpath from "xpath";
-import { args, CONST, logger, Series, SonarrApi, Utils } from "@cortexerr/core";
+import {
+  args,
+  CONST,
+  logger,
+  Movie,
+  RadarrApi,
+  Series,
+  SonarrApi,
+  Utils,
+} from "@cortexerr/core";
 // import { Series, SonarrApi } from "";
 
 const template = `
@@ -107,15 +116,16 @@ function torznabAttribute(doc: Document, name: string, value: string) {
 function buildItem(
   doc: Document,
   query: string,
-  series: Series,
+  request: Series | Movie,
   release: string,
   season?: number,
   episode?: number,
 ): Element {
   const item = doc.createElement("item");
 
-  const release_name = `${query.replaceAll(" ", ".")}.${release}`;
-  const generated_name = `${release_name}.${series.year}.1080p.WEB-DL.x264`;
+  const release_formated = release.length ? `.${release}` : "";
+  const release_name = `${query.replaceAll(" ", ".")}${release_formated}`;
+  const generated_name = `${release_name}.${request.year}.1080p.WEB-DL.x264`;
 
   const title = doc.createElement("title");
   title.appendChild(doc.createTextNode(generated_name));
@@ -142,13 +152,20 @@ function buildItem(
     release.includes("season") ||
     release.includes(".S")
   ) {
-    random_size = Utils.randomSizeInBytes(100);
+    random_size = Utils.randomSizeInBytes(100, 20);
   }
   const size = doc.createElement("size");
   size.appendChild(doc.createTextNode(String(random_size)));
   item.appendChild(size);
 
-  const generated_link = `index/download?query=${query}&hash=${hash}&name=${release_name}&id=${series.id}&tvdbid=${series.tvdbId}&year=${series.year}&length=${random_size}&release=${release}${season ? `&season=${season}` : ""}${episode ? `&episode=${episode}` : ""}`;
+  let public_id = `&tmdbid=${request.tmdbId}`;
+  let type = "radarr";
+  if ("tvdbId" in request) {
+    public_id = `&tvdbid=${request.tvdbId}`;
+    type = "sonarr";
+  }
+
+  const generated_link = `index/download?query=${query}&hash=${hash}&name=${release_name}&id=${request.id}${public_id}&type=${type}&year=${request.year}&length=${random_size}&release=${release}${season ? `&season=${season}` : ""}${episode ? `&episode=${episode}` : ""}`;
   const link = doc.createElement("link");
   link.appendChild(doc.createTextNode(generated_link));
   item.appendChild(link);
@@ -160,19 +177,18 @@ function buildItem(
   item.appendChild(enclosure);
 
   item.appendChild(torznabAttribute(doc, "tag", "freeleech"));
-  // item.appendChild(torznabAttribute(doc, "category", "5000"));
-  // item.appendChild(torznabAttribute(doc, "category", "5040"));
-
+  item.appendChild(torznabAttribute(doc, "seeders", "100"));
+  item.appendChild(torznabAttribute(doc, "peers", "10"));
+  if ("tvdbId" in request) {
+    item.appendChild(torznabAttribute(doc, "category", "5000"));
+  } else {
+    item.appendChild(torznabAttribute(doc, "category", "2000"));
+  }
+  item.appendChild(torznabAttribute(doc, "imdbid", String(request.imdbId)));
   return item;
 }
 
-export function buildFakeTvsearchXml(
-  series: Series,
-  season?: number,
-  episode?: number,
-): string {
-  const query = series.titleSlug.replaceAll("-", " ");
-
+function buildFakeSearchBase() {
   const parser = new DOMParser();
   const doc: Document = parser.parseFromString(template, "application/xml");
 
@@ -187,6 +203,33 @@ export function buildFakeTvsearchXml(
   if (!channel) {
     throw new Error("RSS channel element not found");
   }
+  const serializer = new XMLSerializer();
+
+  return { doc, channel, serializer };
+}
+
+function buildFakeSearchRadarrXml(movie: Movie) {
+  const { doc, channel, serializer } = buildFakeSearchBase();
+
+  logger.info(movie.sortTitle);
+  logger.info(movie.title);
+  logger.info(movie.originalTitle);
+
+  const query = movie.sortTitle;
+
+  channel.appendChild(buildItem(doc, query, movie, ""));
+
+  return cleanXml(serializer.serializeToString(doc));
+}
+
+function buildFakeSearchSonarrXml(
+  series: Series,
+  season?: number,
+  episode?: number,
+) {
+  const { doc, channel, serializer } = buildFakeSearchBase();
+
+  const query = series.titleSlug.replaceAll("-", " ");
 
   // default
   channel.appendChild(buildItem(doc, query, series, "Complete.Series"));
@@ -283,10 +326,7 @@ export function buildFakeTvsearchXml(
       );
     }
   }
-
-  const serializer = new XMLSerializer();
-  const xml = serializer.serializeToString(doc);
-  return cleanXml(xml);
+  return cleanXml(serializer.serializeToString(doc));
 }
 
 function cleanXml(s: string) {
@@ -313,6 +353,7 @@ app.use(async (req, res, next) => {
         query: params.get("query"),
         id: params.get("id"),
         tvdbid: params.get("tvdbid"),
+        type: params.get("type"),
         year: params.get("year"),
         season: params.get("season"),
         episode: params.get("episode"),
@@ -351,11 +392,34 @@ app.use(async (req, res, next) => {
         return;
       }
 
-      const rss = buildFakeTvsearchXml(
+      const rss = buildFakeSearchSonarrXml(
         series,
         season ? Number(season) : undefined,
         episode ? Number(episode) : undefined,
       );
+
+      res
+        .status(200)
+        .set("Content-Type", "application/xml; charset=utf-8")
+        .send(rss);
+      return;
+    } catch (err) {
+      logger.error(err);
+      res.status(500).send(err);
+      return;
+    }
+  }
+
+  const tmdbid = params.get("tmdbid");
+  if (tmdbid) {
+    try {
+      const movie = await RadarrApi.getMovie(Number(tmdbid));
+      if (!movie) {
+        res.status(500).send("Missing movie");
+        return;
+      }
+
+      const rss = buildFakeSearchRadarrXml(movie);
 
       res
         .status(200)
