@@ -1,15 +1,14 @@
 import { QBittorrent } from "@ctrl/qbittorrent";
-// unused without there will be missing type warning for Qbittorrent.getTorrent()
+// unused without there will be missing type warning when building for Qbittorrent.getTorrent()
 import type { NormalizedTorrent } from "@ctrl/shared-torrent";
 import { args, CONST, logger } from "./args.js";
 import { Utils } from "./util.js";
 
 const qb_client = new QBittorrent({
-  baseUrl: args.qbittorrent.toString(),
-  password: String(CONST.QBITTORRENT_PASSWORD),
-  username: String(CONST.QBITTORRENT_USERNAME),
+  baseUrl: args.rdtclient.toString(),
+  password: String(CONST.RDTCLIENT_PASSWORD),
+  username: String(CONST.RDTCLIENT_USERNAME),
 });
-const test = new QBittorrent();
 
 type SabnzbAddResponse = {
   status: boolean;
@@ -76,9 +75,9 @@ type SabnzbdQueueResponse = {
 };
 
 // this at first seems odd im wrapping a already very well documented class the end goal here I is to its not limiting the scope of what you can do but
-// focusing on a default behavior ie I want each instance of the Qbittorent class as a Part of the Downloders map and further this will be doing it own
+// focusing on a default behavior ie I want each instance of the RDTClient class as a Part of the Downloders map and further this will be doing it own
 // checking behavior maybe im wrong but I actually don't think there is much api I have to passthough to allow near full control of the added torrents.
-export class Debrid {
+export class RDTClient {
   public magnet: string;
   public hash: string;
 

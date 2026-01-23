@@ -3,5 +3,6 @@ dist/
 .env
 *.log
 merged/
+typegen/not-transferred/
 app/notes.js
 app/src/explain.js
