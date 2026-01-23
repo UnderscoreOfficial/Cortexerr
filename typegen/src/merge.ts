@@ -445,4 +445,19 @@ function main(): void {
   }
 }
 
-main();
+function isMainModule(): boolean {
+  const current_file_path: string = fileURLToPath(import.meta.url);
+  const entry_file_path: string | undefined = process.argv[1];
+  return entry_file_path != null && entry_file_path == current_file_path;
+}
+
+if (isMainModule()) {
+  void (async function runMain(): Promise<void> {
+    try {
+      main();
+    } catch (error: unknown) {
+      console.error("Error during merging:", error);
+      process.exit(1);
+    }
+  })();
+}

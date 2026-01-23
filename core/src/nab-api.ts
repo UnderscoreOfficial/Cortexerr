@@ -86,7 +86,7 @@ type JSONSearchResultBase = {
   };
 };
 
-type JSONSearchResultTorznab = JSONSearchResultBase & {
+export type JSONSearchResultTorznab = JSONSearchResultBase & {
   jackettindexer: {
     "#text": string;
     id: string;
@@ -103,7 +103,7 @@ type JSONSearchResultTorznab = JSONSearchResultBase & {
     | { name: "magneturl"; value: string }
   >;
 };
-type JSONSearchResultNewznab = JSONSearchResultBase & {
+export type JSONSearchResultNewznab = JSONSearchResultBase & {
   guid: {
     "#text": string;
     isPermaLink: string;
@@ -210,9 +210,14 @@ class NabApiBase {
 
     const xml_rss_feed = new XMLSerializer().serializeToString(rss_template);
     const json_result = parser.parse(xml_rss_feed);
+
     return {
       xml: xml_rss_feed,
-      json: json_result?.rss.channel.item as T[],
+      json: Array.isArray(json_result?.rss?.channel?.item)
+        ? (json_result.rss.channel.item as T[])
+        : json_result?.rss?.channel?.item
+          ? ([json_result.rss.channel.item] as T[])
+          : ([] as T[]),
       length: xml_items.length,
     };
   }
@@ -326,17 +331,13 @@ export class Jackett extends NabApiBase {
   }
 
   static async #search(api: URLSearchParams) {
-    try {
-      const indexers = await this.#getIndexers();
-      const indexer_urls = this.#getIndexerUrls(indexers, api);
-      const requested_indexers = await this.requestIndexers(indexer_urls);
-      const formatted_indexers =
-        this.mergeFormatResults<JSONSearchResultTorznab>(requested_indexers);
+    const indexers = await this.#getIndexers();
+    const indexer_urls = this.#getIndexerUrls(indexers, api);
+    const requested_indexers = await this.requestIndexers(indexer_urls);
+    const formatted_indexers =
+      this.mergeFormatResults<JSONSearchResultTorznab>(requested_indexers);
 
-      return formatted_indexers;
-    } catch (err) {
-      logger.error(err);
-    }
+    return formatted_indexers;
   }
 
   // search type and api shape is defined here. extra api params can be done via the api_base
