@@ -1,0 +1,50 @@
+{
+  "name": "@cortexerr/partial",
+  "version": "0.0.1",
+  "description": "Official API typescript definitions and js runtime files for Cortexerr Partial Api Bypass.",
+  "keywords": [
+    "cortexerr",
+    "types",
+    "runtime",
+    "typescript"
+  ],
+  "author": "UnderscoreOfficial",
+  "repository": "github:UnderscoreOfficial/Cortexerr",
+  "license": "GPL-3.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./merged/core/src/index.d.ts",
+  "files": [
+    "merged/core/src/**/*.d.ts",
+    "dist/**/*.js"
+  ],
+  "exports": {
+    ".": {
+      "types": "./merged/core/src/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./args.js": {
+      "types": "./merged/core/src/*.d.ts",
+      "require": "./dist/args.js",
+      "import": "./dist/args.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "dev": "tsx src/test.ts"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "pino": "^10.2.1",
+    "pino-pretty": "^13.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "@cortexerr/core": "file:../core"
+  }
+}

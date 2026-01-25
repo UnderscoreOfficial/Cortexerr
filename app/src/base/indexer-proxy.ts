@@ -158,14 +158,14 @@ function buildItem(
   size.appendChild(doc.createTextNode(String(random_size)));
   item.appendChild(size);
 
-  let public_id = `&tmdbid=${request.tmdbId}`;
+  let public_id = request.tmdbId;
   let type = "radarr";
   if ("tvdbId" in request) {
-    public_id = `&tvdbid=${request.tvdbId}`;
+    public_id = request.tvdbId;
     type = "sonarr";
   }
 
-  const generated_link = `index/download?query=${query}&hash=${hash}&name=${release_name}&id=${request.id}${public_id}&type=${type}&year=${request.year}&length=${random_size}&release=${release}${season ? `&season=${season}` : ""}${episode ? `&episode=${episode}` : ""}`;
+  const generated_link = `index/download?query=${query}&hash=${hash}&name=${release_name}&rid=${request.id}&id=${public_id}&type=${type}&year=${request.year}&length=${random_size}&release=${release}${season ? `&season=${season}` : ""}${episode ? `&episode=${episode}` : ""}`;
   const link = doc.createElement("link");
   link.appendChild(doc.createTextNode(generated_link));
   item.appendChild(link);
@@ -351,8 +351,8 @@ app.use(async (req, res, next) => {
         name: params.get("name"),
         hash: params.get("hash"),
         query: params.get("query"),
+        rid: params.get("rid"),
         id: params.get("id"),
-        tvdbid: params.get("tvdbid"),
         type: params.get("type"),
         year: params.get("year"),
         season: params.get("season"),
