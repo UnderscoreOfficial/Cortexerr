@@ -2,6 +2,7 @@ import {
   args,
   ingest,
   IngestRequest,
+  IngestRequestBase,
   IngestState,
   logger,
 } from "@cortexerr/core";
@@ -64,8 +65,8 @@ app.post(
         "hash",
         "name",
         "query",
+        "rid",
         "id",
-        "tvdbid",
         "type",
         "year",
         "season",
@@ -81,38 +82,55 @@ app.post(
       // fix categories once I add radarr support
       const hash = fields.get("hash");
       if (!ingest.has(hash)) {
-        const request: IngestRequest = {
-          category: "tv_sonarr",
+        const request_base: IngestRequestBase = {
+          category: fields.get("type"),
           search_query: String(fields.get("query")),
-          rid: String(fields.get("id")),
-          tvdb_id: Number(fields.get("id")),
+          rid: String(fields.get("rid")),
           year: Number(fields.get("year")),
           length: Number(fields.get("length")),
-          release: String(fields.get("release")),
         };
-        if (fields.get("season")) {
-          request.season = fields.get("season");
-        }
-        if (fields.get("episode")) {
-          request.episode = fields.get("episode");
+
+        let request: IngestRequest | undefined;
+
+        if (fields.get("type") == "sonarr") {
+          request = {
+            ...request_base,
+            category: "tv_sonarr",
+            tvdb_id: Number(fields.get("id")),
+            release: String(fields.get("release")),
+          };
+          if (fields.get("season")) {
+            request.season = fields.get("season");
+          }
+          if (fields.get("episode")) {
+            request.episode = fields.get("episode");
+          }
+        } else if (fields.get("type") == "sonarr") {
+          request = {
+            ...request_base,
+            category: "movie_radarr",
+            tmdb_id: String(fields.get("id")),
+          };
         }
 
-        ingest.set(hash, {
-          hash,
-          status: {
-            progress: 0,
-            state: "downloading",
-            save_path:
-              String(fields.get("type")) == "sonarr"
-                ? args.sonarr_download_path
-                : args.radarr_download_path,
-            completed: false,
-          },
-          request,
-        });
+        if (request) {
+          ingest.set(hash, {
+            hash,
+            status: {
+              progress: 0,
+              state: "downloading",
+              save_path:
+                String(fields.get("type")) == "sonarr"
+                  ? args.sonarr_download_path
+                  : args.radarr_download_path,
+              completed: false,
+            },
+            request,
+          });
+          logger.info("-- TORRENT DOWNLOADING --");
+        }
+        // error state figure out error handeling at core
       }
-      logger.info("-- TORRENT DOWNLOADING --");
-      // logger.info({ fields: [...fields] });
     } catch (err) {
       console.error("Failed to decode torrent:", err);
     }

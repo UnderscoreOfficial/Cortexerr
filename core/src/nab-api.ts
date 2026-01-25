@@ -140,23 +140,23 @@ type Search = {
 };
 
 type TvSearchBase = Search & {
-  season?: number;
-  episode?: number;
+  season?: number | undefined;
+  episode?: number | undefined;
 };
-type TvSearchTorrents = TvSearchBase & {
+export type TvSearchTorrents = TvSearchBase & {
   query: string;
   tvdb_id?: string;
 };
-type TvSearchUsenet = TvSearchBase & {
+export type TvSearchUsenet = TvSearchBase & {
   tvdb_id: string;
   query?: string;
 };
 
-type MovieSearchTorrents = Search & {
+export type MovieSearchTorrents = Search & {
   query: string;
   tmdb_id?: string;
 };
-type MovieSearchUsenet = Search & {
+export type MovieSearchUsenet = Search & {
   tmdb_id: string;
   query?: string;
 };
@@ -315,7 +315,7 @@ export class Jackett extends NabApiBase {
         continue;
       }
 
-      const params = ["ep", "season", "tvdbid", "q"];
+      const params = ["ep", "season", "tvdbid", "tmdbid", "q"];
       const invalid_params = params.filter(
         (param) => !supported_params.includes(param),
       );
@@ -399,7 +399,7 @@ export class Hydra extends NabApiBase {
     });
 
     if (!response.ok) {
-      throw new Error(`Error fetching Hyrda data: ${response.statusText}`);
+      throw new Error(`Error fetching Hydra data: ${response.statusText}`);
     }
     const indexers = (await response.json()) as HydraIndexer[];
     const active_indexers = indexers.filter(
