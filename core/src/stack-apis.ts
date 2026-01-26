@@ -1,6 +1,3 @@
-// really only neede for the indexer proxy but ill extend it out to all the apis just incase you wan't more data to track
-// as well I might end up adding more data form these to the base IngestRequest table anyways to worth extending everywhere
-
 import { request } from "undici";
 import { args, CONST, logger } from "./args.js";
 
@@ -162,14 +159,3 @@ export class RadarrApi extends RequestApiBase {
     return undefined;
   }
 }
-
-// example call - what download clients api call after completed with the file name or path
-// SonarrApi.import(
-//   "FXs.A.Christmas.Carol.2019.2160p.DSNP.WEB-DL.DDP5.1.HDR.H.265-Kitsune.mkv",
-// );
-
-// const api =
-//   "/api/v3/manualimport?folder=/shared/www.Torrenting.com - South Park S09E06 The Death of Eric Cartman 1080p HMAX WEB-DL DD5 1 H 264-CtrlHD";
-// const api = "/api/v3/command";
-// const api = "/api/v3/manualimport";
-// const api = "/api/v3/series?tvdbId=75897";

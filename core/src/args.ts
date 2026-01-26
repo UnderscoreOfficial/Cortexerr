@@ -52,20 +52,20 @@ export const CONST = {
   // Hydra is treated as usenet only! if torrents are included it will break things
   // jackett is treated as torrents only
 
-  // [first class] torrent only
+  // [indexers] torrent only
   JACKETT_PORT: "9117",
   JACKETT_API_KEY: process.env["JACKETT_API_KEY"],
 
-  // [first class] usenet only
+  // [indexers] usenet only
   HYDRA_PORT: "5076",
   HYDRA_API_KEY: process.env["HYDRA_API_KEY"],
 
-  // [first class] debrid (torrents) only
+  // [download_client] debrid (torrents) only
   RDTCLIENT_PORT: "6500",
   RDTCLIENT_USERNAME: process.env["RDTCLIENT_USERNAME"],
   RDTCLIENT_PASSWORD: process.env["RDTCLIENT_PASSWORD"],
 
-  // [first class] usenet only
+  // [download_client] usenet only
   SABNZBD_PORT: "8080",
   SABNZBD_API_KEY: process.env["SABNZBD_API_KEY"],
 } as const;
@@ -120,6 +120,9 @@ const parsed_args = parseArgs({
     rss_sync_interval: {
       type: "string",
       default: "60",
+    },
+    release_groups: {
+      type: "string", // , seperated string a,b,c
     },
   },
   allowPositionals: true,

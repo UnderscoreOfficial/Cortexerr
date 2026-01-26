@@ -267,8 +267,6 @@ app.listen(8282, args.host.hostname, () => {
   logger.info(`[Downloader_Proxy] listening on ${args.host.hostname}:${8282}`);
 });
 
-// TODO need to impliment auth or its possible for someone to request here and have full access to real downloaders / indexers without their auths
-
 // block non valid apikey
 // const api = params.get("apikey");
 // if (api != CONST.JACKETT_API_KEY) {
@@ -277,24 +275,6 @@ app.listen(8282, args.host.hostname, () => {
 //   return;
 // }
 //
-
-// redirect search for querys
-// const query = params.get("q");
-// if (query) {
-//   try {
-//     res
-//       .status(200)
-//       .set("Content-Type", "application/xml; charset=utf-8")
-//       .send();
-//     return;
-//   } catch (err) {
-//     logger.error(err);
-//     res.status(500).send(err);
-//     return;
-//   }
-// }
-
-// forward anything else to prowlarr
 
 // const delay_hours = (Number(args["cache-time"]) ?? CACHE_TIME) * 60 * 1000 // 1 hour
 
