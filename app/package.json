@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/main.js",
-    "dev": "tsx src/main.ts"
+    "dev": "tsx src/test.ts"
   },
   "keywords": [],
   "author": "underscore",

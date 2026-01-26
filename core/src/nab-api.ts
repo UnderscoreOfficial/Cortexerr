@@ -1,8 +1,3 @@
-// General structure should be communicate used user defined indexer choice if it has a method to get its indexers
-// ->
-// decide search general? specific search does cost factor in per api hit or not? are you including specific ep/season or scene group info
-// ->
-// preform search upon only enabled indexers in parallel, aggragate results.
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 import { XMLParser } from "fast-xml-parser";
 import { args, CONST, logger } from "./args.js";

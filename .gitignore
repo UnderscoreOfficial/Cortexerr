@@ -6,4 +6,6 @@ merged/
 typegen/not-transferred/
 app/notes.js
 app/src/explain.js
-app/src/main.ts
+app/src/test.ts
+core/src/test.ts
+partial/src/test.ts
