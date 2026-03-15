@@ -1,11 +1,7 @@
-node_modules/
-dist/
 .env
-*.log
-merged/
-typegen/not-transferred/
-app/notes.js
-app/src/explain.js
-app/src/test.ts
-core/src/test.ts
-partial/src/test.ts
+.vscode
+obj/
+bin/
+data/
+logs/
+stats_logging.js

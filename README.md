@@ -18,7 +18,7 @@ reliable data sets the scope of its reach needs to be tight and focused as such 
 - Jackett
 ### Supported Downloaders
 - Sabnzbd
-- Qbittorrent *Designed with debrid based clients in mind, it will work with normal torrents however its recomended highly to use with debrid services only*
+- RdtClient
 
 ## Short Summary
 Cortexerr turns Sonarr's / Radarr's basic “indexer + downloader” model into a controlled, opinionated pipeline. It fakes just enough to keep the arrs happy, 
@@ -43,7 +43,7 @@ than allowing more perfered indexers as with the exception of a few specific nee
 Downloaders less of concrete reasons more at tooling qbittorrent was only because most debrid services use this api and debrid was the goal for torrents. 
 as for usenet Sabnzbd seemed like a reasonable enough pick this was really scope and tooling limiting. 
 
-This was built with , [Typescript](https://github.com/microsoft/TypeScript)
+This was built with [C#](https://dotnet.microsoft.com/en-us/languages/csharp) ,
 
 ## Screenshots
 
