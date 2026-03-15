@@ -1,0 +1,45 @@
+{
+  "naming": {
+    "class":     "PascalCase",
+    "method":    "PascalCase",
+    "namespace": "PascalCase",
+    "struct":    "PascalCase",
+    "record":    "PascalCase",
+    "enum":      "PascalCase",
+    "interface": "IPascalCase (see behavior.interfaces)",
+
+    "variable":  {
+      "local": "lowercase_snake_case",
+      "parameter": "lowercase_snake_case",
+      "const":   "CAPITAL_SNAKE_CASE",
+      "static": "lowercase_snake_case (unless const)"
+      "private": "_lowercase_snake_case",
+      "public_field": "lowercase_snake_case (avoid public fields)",
+    },    
+
+    "property": {
+      "public": "lowercase_snake_case",
+      "private": "_lowercase_snake_case"
+    }
+  },
+
+  "behavior": {
+    "interfaces": [
+      "Must be meaningful - follow YAGNI principles",
+      "Anti-pattern: IParser interface -> Parser class (meaningless abstraction when only consumed once)",
+      "IParser must not be a shell interface that only ever maps once",
+      "e.g. Multiple interface consumers a predictable shape is needed"
+    ],
+    
+    "fields": [
+      "Prefer properties over public fields",
+      "Use private fields with underscore prefix for backing storage"
+    ],
+
+    "constants": [
+      "Use CAPITAL_SNAKE_CASE to signal immutability",
+      "Visual distinction from mutable state is intentional"
+    ]
+  }
+
+}
