@@ -8,7 +8,7 @@ using MonoTorrent.BEncoding;
 
 namespace Cortexerr.App.Base;
 
-internal static class Requested
+public static class Requested
 {
     public static Dictionary<string, Ingest> ingest = new();
 }
