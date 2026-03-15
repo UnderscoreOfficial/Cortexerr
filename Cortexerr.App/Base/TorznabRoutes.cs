@@ -152,9 +152,13 @@ public static class TorznabRoutes
     var formatted_name = $"{movie.sort_title?.Replace(" ", ".")}{formated_release}";
     var release_name = $"{formatted_name}.${movie.year}.1080p.WEB-DL.x264";
 
-    var hash = Utils.RandomHexadecimal(40);
+    string hash;
+    do
+    {
+      hash = Utils.RandomHexadecimal(40);
+    }
+    while (Requested.ingest.ContainsKey(hash));
     var random_size = Utils.RandomByteSize(50, 10);
-
     var generated_link_base = "api/download?";
     var link_query = HttpUtility.ParseQueryString(String.Empty);
     link_query.Add("hash", hash);
@@ -183,7 +187,12 @@ public static class TorznabRoutes
     var formatted_name = $"{series.title_slug?.Replace("-", ".").Replace(" ", ".")}{formated_release}";
     var release_name = $"{formatted_name}.{series.year}.1080p.WEB-DL.x264";
 
-    var hash = Utils.RandomHexadecimal(40);
+    string hash;
+    do
+    {
+      hash = Utils.RandomHexadecimal(40);
+    }
+    while (Requested.ingest.ContainsKey(hash));
     var random_size = Utils.RandomByteSize(20);
     if (release.Contains("series", StringComparison.OrdinalIgnoreCase)
         || release.Contains("season", StringComparison.OrdinalIgnoreCase)
