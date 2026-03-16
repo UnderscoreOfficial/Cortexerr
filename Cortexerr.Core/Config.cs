@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text.Json.Serialization;
 using Cortexerr.Core.Logging;
+using Cortexerr.Core.Utilities;
 
 // this is the only file that should ever have a hard crash and throw errors
 //
@@ -47,6 +48,7 @@ public record ConfigArgs(
         Uri hydra,
         Uri rdtclient,
         Uri sabnzbd,
+        string host_api_key,
         string[] release_groups, // defined as an array of groups eg. [group1, group2]  
         string sonarr_download_path = "/sonarr",
         string radarr_download_path = "/radarr",
@@ -286,6 +288,7 @@ public static class Config
                 ParseUri(Const.HYDRA_PORT),
                 ParseUri(Const.RDTCLIENT_PORT),
                 ParseUri(Const.SABNZBD_PORT),
+                Utils.SecureRandomHexadecimal(),
                 new string[0]
             );
     }
