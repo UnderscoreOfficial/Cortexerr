@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace Cortexerr.Core.Utilities;
 
 /// <summary>
@@ -5,6 +7,14 @@ namespace Cortexerr.Core.Utilities;
 /// </summary>
 public static class Utils
 {
+
+    public static string SecureRandomHexadecimal(int bytes = 32)
+    {
+        var buffer = new byte[bytes];
+        RandomNumberGenerator.Fill(buffer);
+        return Convert.ToHexString(buffer).ToLowerInvariant();
+    }
+
     public static string RandomHexadecimal(int length)
     {
         const string hex_characters = "0123456789ABCDEF";

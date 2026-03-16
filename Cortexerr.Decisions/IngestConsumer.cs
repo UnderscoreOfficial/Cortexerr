@@ -1,6 +1,6 @@
-using Cortexerr.Core;
+using Cortexerr.Core.Ingest;
 
-namespace Cortexerr.App.Decisions;
+namespace Cortexerr.Decisions.Consumer;
 
 public class IngestConsumer : IIngestConsumer
 {

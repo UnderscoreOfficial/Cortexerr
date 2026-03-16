@@ -1,7 +1,8 @@
 <Solution>
   <Project Path="Cortexerr.App/Cortexerr.App.csproj" />
   <Project Path="Cortexerr.Core/Cortexerr.Core.csproj" />
-  <Project Path="Cortexerr.Profile/Cortexerr.Profile.csproj" />
+  <Project Path="Cortexerr.Extended/Cortexerr.Extended.csproj" />
+  <Project Path="Cortexerr.Decisions/Cortexerr.Decisions.csproj" />
   <Project Path="Cortexerr.Tests.Unit/Cortexerr.Tests.Unit.csproj" />
   <Project Path="Cortexerr.Tests.Integration/Cortexerr.Tests.Integration.csproj" />
 </Solution>

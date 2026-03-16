@@ -274,7 +274,10 @@ public static class TorznabRoutes
       if (season != null)
       {
         channel.AppendChild(BuildSeriesItem(xml, series.data, $"Season-{season}", season));
-        for (var i = 1; i <= series.data.statistics?.total_episode_count; i++)
+
+        var episode_count = series.data.statistics?.total_episode_count;
+        if (episode_count > 50) episode_count = 50;
+        for (var i = 1; i <= episode_count; i++)
         {
           channel.AppendChild(BuildSeriesItem(xml, series.data,
                 $"S{season.ToString()?.PadLeft(2, '0')}E{i.ToString()?.PadLeft(2, '0')}", season));
@@ -290,7 +293,9 @@ public static class TorznabRoutes
         channel.AppendChild(BuildSeriesItem(xml, series.data, $"Season-{season}-{episode}", season, episode));
         channel.AppendChild(BuildSeriesItem(xml, series.data,
               $"S{season.ToString()?.PadLeft(2, '0')}E{episode.ToString()?.PadLeft(2, '0')}", season, episode));
-        for (var i = 1; i <= episode; i++)
+        var episode_count = episode;
+        if (episode_count > 50) episode_count = 50;
+        for (var i = 1; i <= episode_count; i++)
         {
           channel.AppendChild(BuildSeriesItem(xml, series.data,
                 $"S{season.ToString()?.PadLeft(2, '0')}E{i.ToString()?.PadLeft(2, '0')}", season, episode));
@@ -336,7 +341,8 @@ public static class TorznabRoutes
     });
     app.MapGet("/indexer/api", async (string? apikey, string? t, int? tvdbid, int? tmdbid, int? season, int? ep) =>
     {
-      // if (String.IsNullOrEmpty(apikey)) return;
+      if (apikey != Config.ARGS.host_api_key)
+        return Results.Unauthorized();
       if (t == "caps")
       {
         return TestCapabilities();

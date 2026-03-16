@@ -1,9 +1,12 @@
 using System.Globalization;
 using System.Text.Json;
-using Cortexerr.App.Decisions;
 using Cortexerr.Core;
 using Cortexerr.Core.Arrs;
 using Cortexerr.Core.Configuration;
+using Cortexerr.Core.Ingest;
+using Cortexerr.Core.Utilities;
+using Cortexerr.Decisions.Consumer;
+using Microsoft.AspNetCore.Mvc;
 using MonoTorrent.BEncoding;
 
 namespace Cortexerr.App.Base;
@@ -28,6 +31,7 @@ public record EncodedTorrent(
 public static class QbittorrentRoutes
 {
     private static IngestConsumer _ingest_consumer => new();
+    private static string? _sid_cookie { get; set; }
 
     private static int? TorrentDecodeInt(BEncodedDictionary dict, string key)
     {
@@ -171,12 +175,43 @@ public static class QbittorrentRoutes
 
     public static WebApplication MapQbittorrentRoutes(this WebApplication app)
     {
+        app.MapPost("/downloader/api/v2/auth/login", async (context) =>
+        {
+            var form = await context.Request.ReadFormAsync();
+            var username = form["username"].ToString();
+            var password = form["password"].ToString();
+
+            if (username != "cortexerr" || password != Config.ARGS.host_api_key)
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await context.Response.WriteAsync("Fails.");
+                return;
+            }
+
+            var sid = Utils.SecureRandomHexadecimal();
+            _sid_cookie = sid;
+            context.Response.Cookies.Append("SID", sid, new CookieOptions
+            {
+                HttpOnly = true,
+                Path = "/",
+                Secure = false,
+                SameSite = SameSiteMode.Lax
+            });
+            await context.Response.WriteAsync("Ok.");
+        });
         app.MapPost("/downloader/api/v2/torrents/add", async (HttpRequest request) =>
         {
+            var sid = request.Cookies["SID"];
+            if (sid != _sid_cookie || String.IsNullOrEmpty(sid))
+                return Results.StatusCode(StatusCodes.Status403Forbidden);
             return await TorrentAdd(request);
         });
         app.MapPost("/downloader/api/v2/torrents/delete", async (HttpRequest request) =>
         {
+            var sid = request.Cookies["SID"];
+            if (sid != _sid_cookie || String.IsNullOrEmpty(sid))
+                return Results.StatusCode(StatusCodes.Status403Forbidden);
+
             var form = await request.ReadFormAsync();
             var hashes = form["hashes"].ToString().Split("|");
 

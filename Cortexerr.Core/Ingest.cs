@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cortexerr.Core.Arrs;
 
-namespace Cortexerr.Core;
+namespace Cortexerr.Core.Ingest;
 
 public enum TorrentState
 {
@@ -112,3 +112,4 @@ public record Ingest
     public IngestRadarr? radarr { get; init; }
     public required IngestStatus status { get; init; }
 }
+
