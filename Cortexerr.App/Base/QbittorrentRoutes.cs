@@ -1,12 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
-using Cortexerr.Core;
 using Cortexerr.Core.Arrs;
 using Cortexerr.Core.Configuration;
 using Cortexerr.Core.Ingest;
 using Cortexerr.Core.Utilities;
-using Cortexerr.Decisions.Consumer;
-using Microsoft.AspNetCore.Mvc;
 using MonoTorrent.BEncoding;
 
 namespace Cortexerr.App.Base;
@@ -30,7 +27,6 @@ public record EncodedTorrent(
 
 public static class QbittorrentRoutes
 {
-    private static IngestConsumer _ingest_consumer => new();
     private static string? _sid_cookie { get; set; }
 
     private static int? TorrentDecodeInt(BEncodedDictionary dict, string key)
@@ -166,8 +162,7 @@ public static class QbittorrentRoutes
         {
             Requested.ingest.Add(ingest.hash, ingest);
             Console.WriteLine(JsonSerializer.Serialize(ingest));
-            // this needs to support external dll and default logic
-            _ingest_consumer.RequestHandler(ingest);
+            State.consumer.RequestHandler(ingest);
             return Results.Ok();
         }
         return Results.BadRequest("(QbittorrentRoutes|TorrentAdd) Unknown error failed to add");
