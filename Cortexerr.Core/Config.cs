@@ -34,6 +34,13 @@ public static class Const
     public const int SABNZBD_PORT = 8080;
 }
 
+public enum DllApiLevel
+{
+    DISABLED,
+    OVERRIDE,
+    FULL
+}
+
 // nothing can be null must always have a base value
 // non initialized args must be set in Config.DefaultArgs
 
@@ -50,6 +57,10 @@ public record ConfigArgs(
         Uri sabnzbd,
         string host_api_key,
         string[] release_groups, // defined as an array of groups eg. [group1, group2]  
+
+        string custom_dll_path = "",
+        DllApiLevel custom_dll_api_level = DllApiLevel.DISABLED,
+
         string sonarr_download_path = "/sonarr",
         string radarr_download_path = "/radarr",
         bool rss_sync = false, // checks for new releases only for sonarr
@@ -293,31 +304,6 @@ public static class Config
             );
     }
 
-    private static void CheckArgs(ConfigArgs config)
-    {
-        var has_null = false;
-        var properties = typeof(ConfigArgs).GetProperties();
-        foreach (var arg in properties)
-        {
-            if (arg.GetValue(config) == null)
-            {
-                has_null = true;
-                break;
-            }
-        }
-        if (has_null)
-        {
-            var config_args = DefaultArgs();
-            foreach (var arg in properties)
-            {
-                if (arg.GetValue(config) == null)
-                {
-                    arg.SetValue(config, arg.GetValue(config_args));
-                }
-            }
-        }
-    }
-
     private static void Validate()
     {
         var options = new JsonSerializerOptions()
@@ -349,40 +335,43 @@ public static class Config
 
         if (!string.IsNullOrEmpty(json))
         {
+            var json_doc = JsonDocument.Parse(json);
+            var root = json_doc.RootElement;
+
+            var default_args = DefaultArgs();
+            var properties = typeof(ConfigArgs).GetProperties();
+            var missing_or_null = false;
 
             var config_args = JsonSerializer.Deserialize<ConfigArgs>(json, options);
-            if (config_args != null)
-            {
-                // populate any missing args / nul
-                var has_null = false;
-                var properties = typeof(ConfigArgs).GetProperties();
-                foreach (var arg in properties)
-                {
-                    if (arg.GetValue(config_args) == null)
-                    {
-                        has_null = true;
-                        break;
-                    }
-                }
-                if (has_null)
-                {
-                    var default_args = DefaultArgs();
-                    foreach (var arg in properties)
-                    {
-                        if (arg.GetValue(config_args) == null)
-                        {
-                            arg.SetValue(config_args, arg.GetValue(default_args));
-                        }
-                    }
-                    File.WriteAllText(Arg.CONFIG_BACKUP_PATH, json);
-                    File.WriteAllText(Arg.CONFIG_PATH, JsonSerializer.Serialize(config_args, options));
-                }
-                ARGS = config_args;
-            }
-            else
-            {
+            if (config_args == null)
                 throw new InvalidOperationException("Deserializing config.json failed!");
+
+            var json_dict = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+            foreach (var property in root.EnumerateObject())
+            {
+                json_dict[property.Name] = property.Value;
             }
+
+            foreach (var property in properties)
+            {
+                if (!json_dict.ContainsKey(property.Name))
+                {
+                    property.SetValue(config_args, property.GetValue(default_args));
+                    missing_or_null = true;
+                }
+                if (property.GetValue(config_args) == null)
+                {
+                    property.SetValue(config_args, property.GetValue(default_args));
+                    missing_or_null = true;
+                }
+            }
+
+            if (missing_or_null)
+            {
+                File.WriteAllText(Arg.CONFIG_BACKUP_PATH, json);
+                File.WriteAllText(Arg.CONFIG_PATH, JsonSerializer.Serialize(config_args, options));
+            }
+            ARGS = config_args;
         }
         else
         {

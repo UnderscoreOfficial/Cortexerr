@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Cortexerr.Core.Configuration;
 using Cortexerr.Core.Errors;
+using Cortexerr.Core.Ingest;
 using Cortexerr.Core.Logging;
 using Cortexerr.Core.Utilities;
 

@@ -15,4 +15,5 @@ Env.Initialize();
 Config.Initialize();
 // everything past must not throw errors
 
+State.Initialize();
 Routes.Initialize();
