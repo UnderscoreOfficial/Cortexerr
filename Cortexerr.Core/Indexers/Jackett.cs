@@ -222,7 +222,7 @@ public record JackettResponseSearchRss
     public JackettResponseRss? rss { get; init; }
 }
 
-public record JackettSearchParams(string search_type, List<int> categories, string? query, string? tvdb_id, string? tmdb_id, int? season, int? episode)
+public record JackettSearchParams(string search_type, List<int> categories, string? query, int? tvdb_id, int? tmdb_id, int? season, int? episode)
 {
     public string ToQueryString()
     {
@@ -230,8 +230,8 @@ public record JackettSearchParams(string search_type, List<int> categories, stri
 
         query_string.Add("t", search_type);
         if (query != null) query_string.Add("q", query);
-        if (tvdb_id != null) query_string.Add("tvdbid", tvdb_id);
-        if (tmdb_id != null) query_string.Add("tmdbid", tmdb_id);
+        if (tvdb_id != null) query_string.Add("tvdbid", tvdb_id.ToString());
+        if (tmdb_id != null) query_string.Add("tmdbid", tmdb_id.ToString());
         if (season.HasValue) query_string.Add("season", season.Value.ToString());
         if (episode.HasValue) query_string.Add("ep", episode.Value.ToString());
         foreach (var category in categories)
@@ -242,28 +242,28 @@ public record JackettSearchParams(string search_type, List<int> categories, stri
     }
 }
 
-public record IndexerResults
+public record JackettIndexerResults
 {
     public int count { get; init; }
 }
-public record IndexerDetails
+public record JackettIndexerDetails
 {
     public required string id { get; init; }
     public required Uri url { get; init; }
     public JackettSearchParams? search_params { get; init; }
 }
-public record IndexerDetailsResults(IndexerDetails indexer_details, HandleResponse<IndexerResults> indexer_results);
+public record JackettIndexerDetailsResults(JackettIndexerDetails indexer_details, HandleResponse<JackettIndexerResults> indexer_results);
 
-public record IndexerSearchItem
+public record JackettIndexerSearchItem
 {
-    public required IndexerDetails indexer_details { get; init; }
+    public required JackettIndexerDetails indexer_details { get; init; }
     public required HandleResponse<JackettResponseSearchRss> rss { get; init; }
 }
 
-public record IndexerSearchResults
+public record JackettIndexerSearchResults
 {
     public required List<JackettResponseRssItem> results { get; init; }
-    public required List<IndexerDetailsResults> indexers { get; init; }
+    public required List<JackettIndexerDetailsResults> indexers { get; init; }
 }
 
 public static class Jackett
@@ -290,17 +290,17 @@ public static class Jackett
         return handled_response;
     }
 
-    async private static Task<HandleResponse<List<IndexerDetails>>> Indexers(JackettSearchParams search_params)
+    async private static Task<HandleResponse<List<JackettIndexerDetails>>> Indexers(JackettSearchParams search_params)
     {
         var endpoint = $"api/v2.0/indexers/all/results/torznab/api?apikey={Env.JACKETT_API_KEY}&t=indexers";
         var request = await Request<JackettResponseAllIndexers>(endpoint);
         if (request.error != null)
-            return Response.Error<List<IndexerDetails>>(request.error.code, request.error.message);
+            return Response.Error<List<JackettIndexerDetails>>(request.error.code, request.error.message);
         var indexers = request.data?.indexers?.indexer;
         if (indexers == null || indexers.Length < 1)
-            return Response.Error<List<IndexerDetails>>(ErrorCode.NOT_FOUND, "(Jackett|Indexers) No indexers found");
+            return Response.Error<List<JackettIndexerDetails>>(ErrorCode.NOT_FOUND, "(Jackett|Indexers) No indexers found");
 
-        var indexer_details_list = new List<IndexerDetails>();
+        var indexer_details_list = new List<JackettIndexerDetails>();
 
         foreach (var indexer in indexers)
         {
@@ -360,7 +360,7 @@ public static class Jackett
             if (avaliable_search_params.query == null && avaliable_search_params.tvdb_id == null && avaliable_search_params.tmdb_id == null)
                 continue;
             var url = new Uri($"{Config.ARGS.jackett}api/v2.0/indexers/{indexer.id}/results/torznab/api?{avaliable_search_params.ToQueryString()}");
-            var indexer_details = new IndexerDetails()
+            var indexer_details = new JackettIndexerDetails()
             {
                 id = indexer.id,
                 url = url,
@@ -372,14 +372,14 @@ public static class Jackett
         {
             return Response.Success(indexer_details_list);
         }
-        return Response.Error<List<IndexerDetails>>(ErrorCode.NOT_FOUND, "(Jackett|Indexers) No supported indexers found");
+        return Response.Error<List<JackettIndexerDetails>>(ErrorCode.NOT_FOUND, "(Jackett|Indexers) No supported indexers found");
     }
 
-    async private static Task<IndexerSearchResults> Search(List<IndexerDetails> indexer_details_list)
+    async private static Task<JackettIndexerSearchResults> Search(List<JackettIndexerDetails> indexer_details_list)
     {
         var urls = indexer_details_list.Select(async indexer =>
         {
-            return new IndexerSearchItem()
+            return new JackettIndexerSearchItem()
             {
                 indexer_details = indexer,
                 rss = await Request<JackettResponseSearchRss>(indexer.url.ToString())
@@ -387,21 +387,21 @@ public static class Jackett
         });
         var results = await Task.WhenAll(urls);
         var rss_items = new List<JackettResponseRssItem>();
-        var indexer_results = new List<IndexerDetailsResults>();
+        var indexer_results = new List<JackettIndexerDetailsResults>();
         foreach (var indexer in results)
         {
             if (indexer.rss.error != null)
             {
-                indexer_results.Add(new IndexerDetailsResults(
+                indexer_results.Add(new JackettIndexerDetailsResults(
                             indexer.indexer_details,
-                            Response.Error<IndexerResults>(indexer.rss.error.code, indexer.rss.error.message)));
+                            Response.Error<JackettIndexerResults>(indexer.rss.error.code, indexer.rss.error.message)));
                 continue;
             }
             if (indexer.rss.data == null)
             {
-                indexer_results.Add(new IndexerDetailsResults(
+                indexer_results.Add(new JackettIndexerDetailsResults(
                             indexer.indexer_details,
-                            Response.Error<IndexerResults>(ErrorCode.UNEXPECTED_ERROR, "(Jackett|Search) No error or data")));
+                            Response.Error<JackettIndexerResults>(ErrorCode.UNEXPECTED_ERROR, "(Jackett|Search) No error or data")));
                 continue;
             }
 
@@ -411,27 +411,27 @@ public static class Jackett
             // need to verify full but I think this case would mean valid response just no items
             if (channel != null && items == null)
             {
-                indexer_results.Add(new IndexerDetailsResults(
+                indexer_results.Add(new JackettIndexerDetailsResults(
                             indexer.indexer_details,
-                            Response.Success(new IndexerResults { count = 0 })));
+                            Response.Success(new JackettIndexerResults { count = 0 })));
                 continue;
             }
             if (items != null)
             {
-                indexer_results.Add(new IndexerDetailsResults(
+                indexer_results.Add(new JackettIndexerDetailsResults(
                             indexer.indexer_details,
-                            Response.Success(new IndexerResults { count = items.Length })));
+                            Response.Success(new JackettIndexerResults { count = items.Length })));
                 if (items.Length > 0)
                 {
                     rss_items.AddRange(items);
                 }
                 continue;
             }
-            indexer_results.Add(new IndexerDetailsResults(
+            indexer_results.Add(new JackettIndexerDetailsResults(
                         indexer.indexer_details,
-                        Response.Error<IndexerResults>(ErrorCode.UNEXPECTED_ERROR, "(Jackett|Search) Invalid data unknown error")));
+                        Response.Error<JackettIndexerResults>(ErrorCode.UNEXPECTED_ERROR, "(Jackett|Search) Invalid data unknown error")));
         }
-        var search_results = new IndexerSearchResults()
+        var search_results = new JackettIndexerSearchResults()
         {
             results = rss_items,
             indexers = indexer_results
@@ -439,12 +439,10 @@ public static class Jackett
         return search_results;
     }
 
-    async public static Task<HandleResponse<IndexerSearchResults>> TvSearch(string query, string tvdb_id, int? season = null, int? episode = null)
+    async public static Task<HandleResponse<JackettIndexerSearchResults>> TvSearch(string query, int tvdb_id, int? season = null, int? episode = null)
     {
         if (string.IsNullOrEmpty(query))
-            return Response.Error<IndexerSearchResults>(ErrorCode.INVALID_INPUT, "(Jackett|TvSearch) Invalid query");
-        if (string.IsNullOrEmpty(tvdb_id))
-            return Response.Error<IndexerSearchResults>(ErrorCode.INVALID_INPUT, "(Jackett|TvSearch) Invalid tvdb_id");
+            return Response.Error<JackettIndexerSearchResults>(ErrorCode.INVALID_INPUT, "(Jackett|TvSearch) Invalid query");
 
         var categories = new List<int> { 5000, 5030, 5040, 5045, 5010, 5010 };
         if (Config.ARGS.tv_anime) categories.Add(5070);
@@ -460,22 +458,20 @@ public static class Jackett
         );
         var indexers = await Indexers(search_params);
         if (indexers.error != null)
-            return Response.Error<IndexerSearchResults>(indexers.error.code, indexers.error.message);
+            return Response.Error<JackettIndexerSearchResults>(indexers.error.code, indexers.error.message);
         if (indexers.data == null)
-            return Response.Error<IndexerSearchResults>(ErrorCode.UNEXPECTED_ERROR, "(Jackett|TvSearch) Missing indexers no error or data");
+            return Response.Error<JackettIndexerSearchResults>(ErrorCode.UNEXPECTED_ERROR, "(Jackett|TvSearch) Missing indexers no error or data");
         if (indexers.data.Count == 0)
-            return Response.Error<IndexerSearchResults>(ErrorCode.NOT_FOUND, "(Jackett|TvSearch) No indexers available");
+            return Response.Error<JackettIndexerSearchResults>(ErrorCode.NOT_FOUND, "(Jackett|TvSearch) No indexers available");
 
         var results = await Search(indexers.data);
         return Response.Success(results);
     }
 
-    async public static Task<HandleResponse<IndexerSearchResults>> MovieSearch(string query, string tmdb_id)
+    async public static Task<HandleResponse<JackettIndexerSearchResults>> MovieSearch(string query, int tmdb_id)
     {
         if (string.IsNullOrEmpty(query))
-            return Response.Error<IndexerSearchResults>(ErrorCode.INVALID_INPUT, "(Jackett|MovieSearch) Invalid query");
-        if (string.IsNullOrEmpty(tmdb_id))
-            return Response.Error<IndexerSearchResults>(ErrorCode.INVALID_INPUT, "(Jackett|MovieSearch) Invalid tvdb_id");
+            return Response.Error<JackettIndexerSearchResults>(ErrorCode.INVALID_INPUT, "(Jackett|MovieSearch) Invalid query");
 
         var categories = new List<int> { 2000, 2030, 2040, 2050, 2020, 2045, 2080 };
         if (Config.ARGS.movie_foreign) categories.Add(2010);
@@ -491,11 +487,11 @@ public static class Jackett
         );
         var indexers = await Indexers(search_params);
         if (indexers.error != null)
-            return Response.Error<IndexerSearchResults>(indexers.error.code, indexers.error.message);
+            return Response.Error<JackettIndexerSearchResults>(indexers.error.code, indexers.error.message);
         if (indexers.data == null)
-            return Response.Error<IndexerSearchResults>(ErrorCode.UNEXPECTED_ERROR, "(Jackett|MovieSearch) Missing indexers no error or data");
+            return Response.Error<JackettIndexerSearchResults>(ErrorCode.UNEXPECTED_ERROR, "(Jackett|MovieSearch) Missing indexers no error or data");
         if (indexers.data.Count == 0)
-            return Response.Error<IndexerSearchResults>(ErrorCode.NOT_FOUND, "(Jackett|MovieSearch) No indexers available");
+            return Response.Error<JackettIndexerSearchResults>(ErrorCode.NOT_FOUND, "(Jackett|MovieSearch) No indexers available");
 
         var results = await Search(indexers.data);
         return Response.Success(results);
