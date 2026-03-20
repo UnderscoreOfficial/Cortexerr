@@ -44,12 +44,12 @@ public static class State
             Response.Error<List<Assembly>>(ErrorCode.INVALID_INPUT, "(State|LoadDllAssemblies) No assemblies provided");
     }
 
-    private static DecisionLogic DecisionLogicBuilder(HandleResponse<List<Assembly>> assemblies)
+    private static DecisionLogic DecisionLogicBuilder(HandleResponse<List<Assembly>>? assemblies)
     {
         if (Config.ARGS.custom_dll_api_level == DllApiLevel.OVERRIDE)
         {
             var base_type = typeof(DecisionLogic);
-            if (assemblies.data != null)
+            if (assemblies?.data != null)
             {
                 var canidates = assemblies.data
                     .SelectMany(asm => asm.GetTypes())
@@ -75,12 +75,12 @@ public static class State
         return new DecisionLogic();
     }
 
-    private static IIngestConsumer IngestConsumerBuilder(HandleResponse<List<Assembly>> assemblies)
+    private static IIngestConsumer IngestConsumerBuilder(HandleResponse<List<Assembly>>? assemblies)
     {
         if (Config.ARGS.custom_dll_api_level == DllApiLevel.FULL)
         {
             var base_type = typeof(IIngestConsumer);
-            if (assemblies.data != null)
+            if (assemblies?.data != null)
             {
                 var canidates = assemblies.data
                     .SelectMany(asm => asm.GetTypes())
@@ -89,7 +89,7 @@ public static class State
                             base_type.IsAssignableFrom(type))
                     .ToArray();
                 if (canidates.Length == 0)
-                    return new IngestConsumer();
+                    return new IngestConsumer(logic);
                 if (canidates.Length > 1)
                 {
                     Logger.Log.Warning("(State|IngestConsumerBuilder) Multiple IIngestConsumer canidates, consumer may be wrong");
@@ -102,13 +102,17 @@ public static class State
                 Logger.Log.Error("(State|IngestConsumerBuilder) Instance type of IIngestConsumer");
             }
         }
-        return new IngestConsumer();
+        return new IngestConsumer(logic);
     }
 
     public static void Initialize()
     {
-        var assemblies = LoadDllAssemblies();
-        consumer = IngestConsumerBuilder(assemblies);
+        HandleResponse<List<Assembly>>? assemblies = null;
+        if (Config.ARGS.custom_dll_api_level != DllApiLevel.DISABLED)
+        {
+            assemblies = LoadDllAssemblies();
+        }
         logic = DecisionLogicBuilder(assemblies);
+        consumer = IngestConsumerBuilder(assemblies);
     }
 }

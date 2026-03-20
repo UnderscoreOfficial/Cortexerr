@@ -101,15 +101,15 @@ public record NzbHydraResponseSearchResult
     public NzbHydraResponseChannel? channel { get; init; }
 }
 
-public record NzbHydraSearchParams(string search_type, List<int> categories, string? query, string? tvdb_id, string? tmdb_id, int? season, int? episode)
+public record NzbHydraSearchParams(string search_type, List<int> categories, string? query, int? tvdb_id, int? tmdb_id, int? season, int? episode)
 {
     public NameValueCollection ToQuery()
     {
         var query_string = HttpUtility.ParseQueryString($"apikey={Env.HYDRA_API_KEY}&offset=0&limit=100&o=json");
         query_string.Add("t", search_type);
         if (query != null) query_string.Add("q", query);
-        if (tvdb_id != null) query_string.Add("tvdbid", tvdb_id);
-        if (tmdb_id != null) query_string.Add("tmdbid", tmdb_id);
+        if (tvdb_id != null) query_string.Add("tvdbid", tvdb_id.ToString());
+        if (tmdb_id != null) query_string.Add("tmdbid", tmdb_id.ToString());
         if (season.HasValue) query_string.Add("season", season.Value.ToString());
         if (episode.HasValue) query_string.Add("ep", episode.Value.ToString());
         foreach (var category in categories)
@@ -275,11 +275,8 @@ public static class NzbHydra
         return search_results;
     }
 
-    async public static Task<HandleResponse<NzbHydraSearchResults>> TvSearch(string tvdb_id, string? query = null, int? season = null, int? episode = null)
+    async public static Task<HandleResponse<NzbHydraSearchResults>> TvSearch(int tvdb_id, string? query = null, int? season = null, int? episode = null)
     {
-        if (string.IsNullOrEmpty(tvdb_id))
-            return Response.Error<NzbHydraSearchResults>(ErrorCode.INVALID_INPUT, "(NzbHydra|TvSearch) Invalid tvdb_id");
-
         var categories = new List<int> { 5000, 5030, 5040, 5045, 5010, 5010 };
         if (Config.ARGS.tv_anime) categories.Add(5070);
         if (Config.ARGS.tv_sports) categories.Add(5060);
@@ -304,11 +301,8 @@ public static class NzbHydra
         return Response.Success(results);
     }
 
-    async public static Task<HandleResponse<NzbHydraSearchResults>> MovieSearch(string tmdb_id, string? query = null)
+    async public static Task<HandleResponse<NzbHydraSearchResults>> MovieSearch(int tmdb_id, string? query = null)
     {
-        if (string.IsNullOrEmpty(tmdb_id))
-            return Response.Error<NzbHydraSearchResults>(ErrorCode.INVALID_INPUT, "(NzbHydra|MovieSearch) Invalid tmdb_id");
-
         var categories = new List<int> { 2000, 2030, 2040, 2050, 2020, 2045, 2080 };
         if (Config.ARGS.movie_foreign) categories.Add(2010);
         if (Config.ARGS.movie_3D) categories.Add(2060);
