@@ -18,10 +18,17 @@ namespace Cortexerr.Extended.Indexer;
 // do I say do searches in the background? like say get the first ep then offload the rest to a background
 // process and basically let that continue fetching all the ep searches 
 
-public record IndexerSearchResultItem
+public enum IndexerResultType
+{
+    JACKETT,
+    NZBHYDRA
+}
+
+public sealed record IndexerSearchResultItem
 {
     public required string name { get; init; }
     public required string link { get; init; }
+    public required IndexerResultType type { get; init; }
     public required string indexer { get; init; }
     public required long size { get; init; }
     public DateTimeOffset? upload_date { get; init; }
@@ -34,14 +41,20 @@ public record IndexerSearchResultItem
     public int? usenet_tmdb_id { get; init; }
 }
 
-public record IndexerSearchJob
+public sealed record IndexerSearchJob
 {
     public required List<List<JackettIndexerDetailsResults>> jackett_indexer_results { get; init; }
     public required List<List<NzbHydraIndexerDetailsResults>> hydra_indexer_results { get; init; }
     public required List<IndexerSearchResultItem> results { get; init; }
 }
 
-public class Indexer
+public sealed record IndexerSearchJobResponse
+{
+    public required bool finished { get; set; } = false;
+    public required IndexerSearchJob indexer_search_job { get; init; }
+}
+
+public sealed class Indexer
 {
     public List<JackettIndexerSearchResults> jackett_results { get; set; } = new();
     public List<NzbHydraSearchResults> hydra_results { get; set; } = new();
@@ -114,6 +127,7 @@ public class Indexer
                 {
                     name = name,
                     link = link,
+                    type = IndexerResultType.JACKETT,
                     indexer = indexer,
                     size = size,
                     upload_date = upload_date,
@@ -195,6 +209,7 @@ public class Indexer
                 {
                     name = name,
                     link = link,
+                    type = IndexerResultType.NZBHYDRA,
                     indexer = indexer,
                     size = size,
                     upload_date = upload_date,
@@ -282,7 +297,7 @@ public class Indexer
         return Response.Success();
     }
 
-    async public Task<HandleResponse<IndexerSearchJob>> Search(RequestJob request_job)
+    async public Task<HandleResponse<IndexerSearchJobResponse>> Search(RequestJob request_job)
     {
         var ingest = request_job.ingest;
         if (ingest.sonarr != null)
@@ -306,9 +321,12 @@ public class Indexer
                     }
                 }
                 if (_total_season_episode_count == null)
-                    return
-                        Response.Error<IndexerSearchJob>(ErrorCode.INVALID_STATE, "(Indexer|Search) Could not get total season episode count");
+                    return Response.Error<IndexerSearchJobResponse>(ErrorCode.INVALID_STATE, "(Indexer|Search) Could not get total season episode count");
             }
+
+            if (_current_season_episode > _total_season_episode_count)
+                return Response.Error<IndexerSearchJobResponse>(ErrorCode.ALREADY_EXISTS, "(Indexer|Search) All episodes have already been processed");
+
 
             await SeriesSearch(sonarr.series, tvdb_id, season, episode);
 
@@ -321,7 +339,13 @@ public class Indexer
             }
             var search_job = MergeResults();
             request_job.indexer_search_jobs.Add(search_job);
-            return Response.Success(search_job);
+            var response = new IndexerSearchJobResponse
+            {
+                finished = false,
+                indexer_search_job = search_job
+            };
+            if (_current_season_episode > _total_season_episode_count) response.finished = true;
+            return Response.Success(response);
         }
         else if (ingest.radarr != null)
         {
@@ -338,9 +362,14 @@ public class Indexer
             }
             var search_job = MergeResults();
             request_job.indexer_search_jobs.Add(search_job);
-            return Response.Success(search_job);
+            var response = new IndexerSearchJobResponse
+            {
+                finished = true,
+                indexer_search_job = search_job
+            };
+            return Response.Success(response);
         }
         return
-            Response.Error<IndexerSearchJob>(ErrorCode.UNEXPECTED_ERROR, "(Indexer|Search) Ingest missing sonarr & radarr");
+            Response.Error<IndexerSearchJobResponse>(ErrorCode.UNEXPECTED_ERROR, "(Indexer|Search) Ingest missing sonarr & radarr");
     }
 }
