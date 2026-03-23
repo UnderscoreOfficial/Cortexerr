@@ -6,7 +6,7 @@ using Cortexerr.Core.Logging;
 
 namespace Cortexerr.Core.Arrs;
 
-public record RadarrResponseMediaInfo
+public sealed record RadarrResponseMediaInfo
 {
     public int? audio_bitrate { get; init; }
     public double? audio_channels { get; init; }
@@ -25,21 +25,21 @@ public record RadarrResponseMediaInfo
     public string? subtitles { get; init; }
 }
 
-public record RadarrResponseStatistics
+public sealed record RadarrResponseStatistics
 {
     public int? movie_file_count { get; init; }
     public long? size_on_disk { get; init; }
     public string[]? release_groups { get; init; }
 }
 
-public record RadarrResponseRevision
+public sealed record RadarrResponseRevision
 {
     public int? version { get; init; }
     public int? real { get; init; }
     [JsonPropertyName("isRepack")]
     public bool? is_repack { get; init; }
 }
-public record RadarrResponseQualityDetail
+public sealed record RadarrResponseQualityDetail
 {
     public int? id { get; init; }
     public string? name { get; init; }
@@ -47,13 +47,13 @@ public record RadarrResponseQualityDetail
     public int? resolution { get; init; }
     public string? modifier { get; init; }
 }
-public record RadarrResponseQuality
+public sealed record RadarrResponseQuality
 {
     public RadarrResponseQualityDetail? quality { get; init; }
     public RadarrResponseRevision? revision { get; init; }
 }
 
-public record RadarrResponseMovieFile
+public sealed record RadarrResponseMovieFile
 {
     public int? movie_id { get; init; }
     public string? relative_path { get; init; }
@@ -70,14 +70,14 @@ public record RadarrResponseMovieFile
     public int? id { get; init; }
 }
 
-public record RadarrResponseRatingDetail
+public sealed record RadarrResponseRatingDetail
 {
     public int? votes { get; init; }
     public double? value { get; init; }
     public string? type { get; init; }
 }
 
-public record RadarrResponseRatings
+public sealed record RadarrResponseRatings
 {
     public RadarrResponseRatingDetail? imdb { get; init; }
     public RadarrResponseRatingDetail? tmdb { get; init; }
@@ -87,14 +87,14 @@ public record RadarrResponseRatings
     public RadarrResponseRatingDetail? trakt { get; init; }
 }
 
-public record RadarrResponseImage
+public sealed record RadarrResponseImage
 {
     public string? cover_type { get; init; }
     public string? url { get; init; }
     public string? remote_url { get; init; }
 }
 
-public record RadarrResponseAlternateTitle
+public sealed record RadarrResponseAlternateTitle
 {
     public string? source_type { get; init; }
     public int? movie_metadata_id { get; init; }
@@ -102,13 +102,13 @@ public record RadarrResponseAlternateTitle
     public int? id { get; init; }
 }
 
-public record RadarrResponseLanguage
+public sealed record RadarrResponseLanguage
 {
     public int? id { get; init; }
     public string? name { get; init; }
 }
 
-public record RadarrResponseMovie
+public sealed record RadarrResponseMovie
 {
     public string? title { get; init; }
     [JsonPropertyName("originalTitle")]
