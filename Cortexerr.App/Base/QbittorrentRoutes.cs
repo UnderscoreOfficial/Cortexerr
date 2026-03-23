@@ -91,7 +91,7 @@ public static class QbittorrentRoutes
                 size = length,
                 progress = 0,
                 download_speed = 0,
-                state = TorrentState.UNKNOWN,
+                state = TorrentState.DOWNLOADING,
                 save_path = "/",
                 // content_path
                 eta = 0,
@@ -133,7 +133,7 @@ public static class QbittorrentRoutes
                 size = length,
                 progress = 0,
                 download_speed = 0,
-                state = TorrentState.UNKNOWN,
+                state = TorrentState.DOWNLOADING,
                 save_path = "/",
                 // content_path
                 eta = 0,

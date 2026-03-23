@@ -9,7 +9,7 @@ using Cortexerr.Core.Logging;
 
 namespace Cortexerr.Core.Indexers;
 
-public record NzbHydraResponseIndexerStatus
+public sealed record NzbHydraResponseIndexerStatus
 {
     public string? indexer { get; init; }
     public string? state { get; init; }
@@ -34,42 +34,42 @@ public record NzbHydraResponseIndexerStatus
     public string? vip_expiration_date { get; init; }
 }
 
-public record NzbHydraResponseResponse
+public sealed record NzbHydraResponseResponse
 {
     public NzbHydraResponseAttributes? attributes { get; init; }
 }
 
-public record NzbHydraResponseAttributes
+public sealed record NzbHydraResponseAttributes
 {
     public string? offset { get; init; }
     public string? total { get; init; }
 }
 
-public record NzbHydraResponseEnclosureAttributes
+public sealed record NzbHydraResponseEnclosureAttributes
 {
     public string? url { get; init; }
     public string? length { get; init; }
     public string? type { get; init; }
 }
 
-public record NzbHydraResponseEnclosure
+public sealed record NzbHydraResponseEnclosure
 {
     public NzbHydraResponseEnclosureAttributes? attributes { get; init; }
 }
 
-public record NzbHydraResponseAttrAttributes
+public sealed record NzbHydraResponseAttrAttributes
 {
     public string? name { get; init; }
     public string? value { get; init; }
 }
 
-public record NzbHydraResponseAttr
+public sealed record NzbHydraResponseAttr
 {
     [JsonPropertyName("attributes")]
     public NzbHydraResponseAttrAttributes? attributes { get; init; }
 }
 
-public record NzbHydraResponseItem
+public sealed record NzbHydraResponseItem
 {
     public string? title { get; init; }
     public string? guid { get; init; }
@@ -84,7 +84,7 @@ public record NzbHydraResponseItem
     public string? id { get; init; }
 }
 
-public record NzbHydraResponseChannel
+public sealed record NzbHydraResponseChannel
 {
     public string? title { get; init; }
     public string? link { get; init; }
@@ -96,12 +96,12 @@ public record NzbHydraResponseChannel
     public string? generator { get; init; }
 }
 
-public record NzbHydraResponseSearchResult
+public sealed record NzbHydraResponseSearchResult
 {
     public NzbHydraResponseChannel? channel { get; init; }
 }
 
-public record NzbHydraSearchParams(string search_type, List<int> categories, string? query, int? tvdb_id, int? tmdb_id, int? season, int? episode)
+public sealed record NzbHydraSearchParams(string search_type, List<int> categories, string? query, int? tvdb_id, int? tmdb_id, int? season, int? episode)
 {
     public NameValueCollection ToQuery()
     {
@@ -120,32 +120,32 @@ public record NzbHydraSearchParams(string search_type, List<int> categories, str
     }
 }
 
-public record NzbHydraIndexerDetails
+public sealed record NzbHydraIndexerDetails
 {
     public required Uri url { get; init; }
     public required NzbHydraResponseIndexerStatus indexer { get; init; }
 }
 
-public record NzbHydraIndexers
+public sealed record NzbHydraIndexers
 {
     public required List<NzbHydraIndexerDetails> indexers { get; init; }
     public required NzbHydraSearchParams search_params { get; init; }
 }
 
-public record NzbHyrdraIndexerSearchItem
+public sealed record NzbHyrdraIndexerSearchItem
 {
     public required NzbHydraIndexerDetails indexer { get; init; }
     public required HandleResponse<NzbHydraResponseSearchResult> results { get; init; }
 }
 
-public record NzbHydraIndexerResults
+public sealed record NzbHydraIndexerResults
 {
     public required int count { get; init; }
 }
 
-public record NzbHydraIndexerDetailsResults(NzbHydraIndexerDetails indexer_details, HandleResponse<NzbHydraIndexerResults> indexer_results);
+public sealed record NzbHydraIndexerDetailsResults(NzbHydraIndexerDetails indexer_details, HandleResponse<NzbHydraIndexerResults> indexer_results);
 
-public record NzbHydraSearchResults
+public sealed record NzbHydraSearchResults
 {
     public required List<NzbHydraResponseItem> results { get; init; }
     public required List<NzbHydraIndexerDetailsResults> indexers { get; init; }

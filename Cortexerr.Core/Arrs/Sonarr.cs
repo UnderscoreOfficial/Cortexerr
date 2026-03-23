@@ -6,7 +6,7 @@ using Cortexerr.Core.Logging;
 
 namespace Cortexerr.Core.Arrs;
 
-public record SonarrResponseStatistics
+public sealed record SonarrResponseStatistics
 {
     [JsonPropertyName("seasonCount")]
     public int? season_count { get; init; }
@@ -24,7 +24,7 @@ public record SonarrResponseStatistics
     public double? percent_of_episodes { get; init; }
 }
 
-public record SonarrResponseSeasonStatistics
+public sealed record SonarrResponseSeasonStatistics
 {
     [JsonPropertyName("previousAiring")]
     public string? previous_airing { get; init; }
@@ -42,13 +42,13 @@ public record SonarrResponseSeasonStatistics
     public double? percent_of_episodes { get; init; }
 }
 
-public record SonarrResponseRatings
+public sealed record SonarrResponseRatings
 {
     public int? votes { get; init; }
     public double? value { get; init; }
 }
 
-public record SonarrResponseSeason
+public sealed record SonarrResponseSeason
 {
     [JsonPropertyName("seasonNumber")]
     public int? season_number { get; init; }
@@ -56,13 +56,13 @@ public record SonarrResponseSeason
     public SonarrResponseSeasonStatistics? statistics { get; init; }
 }
 
-public record SonarrResponseLanguage
+public sealed record SonarrResponseLanguage
 {
     public int? id { get; init; }
     public string? name { get; init; }
 }
 
-public record SonarrResponseAlternateTitle
+public sealed record SonarrResponseAlternateTitle
 {
     public string? title { get; init; }
     [JsonPropertyName("seasonNumber")]
@@ -74,7 +74,7 @@ public record SonarrResponseAlternateTitle
     public string? comment { get; init; }
 }
 
-public record SonarrResponseImage
+public sealed record SonarrResponseImage
 {
     [JsonPropertyName("coverType")]
     public string? cover_type { get; init; }
@@ -83,7 +83,7 @@ public record SonarrResponseImage
     public string? remote_url { get; init; }
 }
 
-public record SonarrResponseSeries
+public sealed record SonarrResponseSeries
 {
     public string? title { get; init; }
     [JsonPropertyName("alternateTitles")]

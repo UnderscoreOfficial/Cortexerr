@@ -11,7 +11,7 @@ using Cortexerr.Core.Utilities;
 
 namespace Cortexerr.Core.Downloaders;
 
-public record RdtClientTorrentResponse
+public sealed record RdtClientTorrentResponse
 {
     public long? added_on { get; init; }
     public long? amount_left { get; init; }

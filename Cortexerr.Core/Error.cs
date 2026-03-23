@@ -14,13 +14,13 @@ public enum ErrorCode
     TIMEOUT,
 }
 
-public record ErrorInfo
+public sealed record ErrorInfo
 {
     public ErrorCode code { get; init; }
     public required string message { get; init; }
 }
 
-public record HandleResponse<T>
+public sealed record HandleResponse<T>
 {
     public ErrorInfo? error { get; init; }
     public T? data { get; init; }

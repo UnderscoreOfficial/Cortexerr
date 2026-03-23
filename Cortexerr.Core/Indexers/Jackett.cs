@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Cortexerr.Core.Indexers;
 
-public class SingleOrArrayConverter<T> : JsonConverter<T[]>
+public sealed class SingleOrArrayConverter<T> : JsonConverter<T[]>
 {
     public override T[]? ReadJson(JsonReader reader, Type objectType, T[]? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
@@ -26,7 +26,7 @@ public class SingleOrArrayConverter<T> : JsonConverter<T[]>
     }
 }
 
-public record JackettResponseXml
+public sealed record JackettResponseXml
 {
     [JsonProperty("@version")]
     public string? version { get; init; }
@@ -36,13 +36,13 @@ public record JackettResponseXml
 
 // all indexers
 
-public record JackettResponseServer
+public sealed record JackettResponseServer
 {
     [JsonProperty("@title")]
     public string? title { get; init; }
 }
 
-public record JackettResponseLimits
+public sealed record JackettResponseLimits
 {
     [JsonProperty("@default")]
     public string? default_limit { get; init; }
@@ -51,7 +51,7 @@ public record JackettResponseLimits
     public string? max { get; init; }
 }
 
-public record JackettResponseSearchMode
+public sealed record JackettResponseSearchMode
 {
     [JsonProperty("@available")]
     public string? available { get; init; }
@@ -59,7 +59,7 @@ public record JackettResponseSearchMode
     [JsonProperty("@supportedParams")]
     public string? supported_params { get; init; }
 }
-public record JackettResponseCapsSearching
+public sealed record JackettResponseCapsSearching
 {
     public JackettResponseSearchMode? search { get; init; }
     [JsonProperty("tv-search")]
@@ -74,7 +74,7 @@ public record JackettResponseCapsSearching
     public JackettResponseSearchMode? book_search { get; init; }
 }
 
-public record JackettResponseSubCategory
+public sealed record JackettResponseSubCategory
 {
     [JsonProperty("@id")]
     public string? id { get; init; }
@@ -82,7 +82,7 @@ public record JackettResponseSubCategory
     [JsonProperty("@name")]
     public string? name { get; init; }
 }
-public record JackettResponseCategory
+public sealed record JackettResponseCategory
 {
     [JsonProperty("@id")]
     public string? id { get; init; }
@@ -93,13 +93,13 @@ public record JackettResponseCategory
     [JsonConverter(typeof(SingleOrArrayConverter<JackettResponseSubCategory>))]
     public JackettResponseSubCategory[]? subcat { get; init; }
 }
-public record JackettResponseCategories
+public sealed record JackettResponseCategories
 {
     [JsonConverter(typeof(SingleOrArrayConverter<JackettResponseCategory>))]
     public JackettResponseCategory[]? category { get; init; }
 }
 
-public record JackettResponseCaps
+public sealed record JackettResponseCaps
 {
     public JackettResponseServer? server { get; init; }
     public JackettResponseLimits? limits { get; init; }
@@ -107,7 +107,7 @@ public record JackettResponseCaps
     public JackettResponseCategories? categories { get; init; }
 }
 
-public record JackettResponseIndexer
+public sealed record JackettResponseIndexer
 {
     [JsonProperty("@id")]
     public string? id { get; init; }
@@ -121,13 +121,13 @@ public record JackettResponseIndexer
     public JackettResponseCaps? caps { get; init; }
 }
 
-public record JackettResponseIndexers
+public sealed record JackettResponseIndexers
 {
     [JsonConverter(typeof(SingleOrArrayConverter<JackettResponseIndexer>))]
     public JackettResponseIndexer[]? indexer { get; init; }
 }
 
-public record JackettResponseAllIndexers
+public sealed record JackettResponseAllIndexers
 {
     [JsonProperty("?xml")]
     public JackettResponseXml? xml { get; init; }
@@ -136,14 +136,14 @@ public record JackettResponseAllIndexers
 
 // indexer search
 
-public record JackettResponseTorznabAttr
+public sealed record JackettResponseTorznabAttr
 {
     [JsonProperty("@name")]
     public string? name { get; init; }
     [JsonProperty("@value")]
     public string? value { get; init; }
 }
-public record JackettResponseEnclosure
+public sealed record JackettResponseEnclosure
 {
     [JsonProperty("@url")]
     public string? url { get; init; }
@@ -152,14 +152,14 @@ public record JackettResponseEnclosure
     [JsonProperty("@type")]
     public string? type { get; init; }
 }
-public record JackettResponseRssIndexer
+public sealed record JackettResponseRssIndexer
 {
     [JsonProperty("@id")]
     public string? id { get; init; }
     [JsonProperty("#text")]
     public string? text { get; init; }
 }
-public record JackettResponseRssItem
+public sealed record JackettResponseRssItem
 {
     public string? title { get; init; }
     public string? guid { get; init; }
@@ -181,7 +181,7 @@ public record JackettResponseRssItem
     public JackettResponseTorznabAttr[]? torznab_attr { get; init; }
 }
 
-public record JackettResponseAtomLink
+public sealed record JackettResponseAtomLink
 {
     [JsonProperty("@href")]
     public string? href { get; init; }
@@ -191,7 +191,7 @@ public record JackettResponseAtomLink
     public string? type { get; init; }
 }
 
-public record JackettResponseRssChannel
+public sealed record JackettResponseRssChannel
 {
     [JsonProperty("atom:link")]
     public JackettResponseAtomLink? atom_link { get; init; }
@@ -204,7 +204,7 @@ public record JackettResponseRssChannel
     public JackettResponseRssItem[]? item { get; init; }
 }
 
-public record JackettResponseRss
+public sealed record JackettResponseRss
 {
     [JsonProperty("@version")]
     public string? version { get; init; }
@@ -215,14 +215,14 @@ public record JackettResponseRss
     public JackettResponseRssChannel? channel { get; init; }
 }
 
-public record JackettResponseSearchRss
+public sealed record JackettResponseSearchRss
 {
     [JsonProperty("?xml")]
     public JackettResponseXml? xml { get; init; }
     public JackettResponseRss? rss { get; init; }
 }
 
-public record JackettSearchParams(string search_type, List<int> categories, string? query, int? tvdb_id, int? tmdb_id, int? season, int? episode)
+public sealed record JackettSearchParams(string search_type, List<int> categories, string? query, int? tvdb_id, int? tmdb_id, int? season, int? episode)
 {
     public string ToQueryString()
     {
@@ -242,25 +242,25 @@ public record JackettSearchParams(string search_type, List<int> categories, stri
     }
 }
 
-public record JackettIndexerResults
+public sealed record JackettIndexerResults
 {
     public int count { get; init; }
 }
-public record JackettIndexerDetails
+public sealed record JackettIndexerDetails
 {
     public required string id { get; init; }
     public required Uri url { get; init; }
     public JackettSearchParams? search_params { get; init; }
 }
-public record JackettIndexerDetailsResults(JackettIndexerDetails indexer_details, HandleResponse<JackettIndexerResults> indexer_results);
+public sealed record JackettIndexerDetailsResults(JackettIndexerDetails indexer_details, HandleResponse<JackettIndexerResults> indexer_results);
 
-public record JackettIndexerSearchItem
+public sealed record JackettIndexerSearchItem
 {
     public required JackettIndexerDetails indexer_details { get; init; }
     public required HandleResponse<JackettResponseSearchRss> rss { get; init; }
 }
 
-public record JackettIndexerSearchResults
+public sealed record JackettIndexerSearchResults
 {
     public required List<JackettResponseRssItem> results { get; init; }
     public required List<JackettIndexerDetailsResults> indexers { get; init; }

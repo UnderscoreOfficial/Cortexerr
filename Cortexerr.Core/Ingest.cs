@@ -51,7 +51,7 @@ public static class TorrentStateParser
         _ => TorrentState.UNKNOWN
     };
 }
-public class TorrentStateConverter : JsonConverter<TorrentState>
+public sealed class TorrentStateConverter : JsonConverter<TorrentState>
 {
     public override TorrentState Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => TorrentStateParser.Parse(reader.GetString() ?? "unknown");
@@ -64,7 +64,7 @@ public interface IIngestConsumer
     void RequestHandler(Ingest ingest);
 }
 
-public record IngestSonarrRequest
+public sealed record IngestSonarrRequest
 {
     public required int rid { get; init; }
     public required int tvdb_id { get; init; }
@@ -73,25 +73,25 @@ public record IngestSonarrRequest
     public int? season { get; init; }
     public int? episode { get; init; }
 }
-public record IngestSonarr
+public sealed record IngestSonarr
 {
     public required SonarrResponseSeries series { get; init; }
     public required IngestSonarrRequest request { get; init; }
 }
 
-public record IngestRadarrRequest
+public sealed record IngestRadarrRequest
 {
     public required int rid { get; init; }
     public required int tmdb_id { get; init; }
     public required double length { get; init; }
 }
-public record IngestRadarr
+public sealed record IngestRadarr
 {
     public required RadarrResponseMovie movie { get; init; }
     public required IngestRadarrRequest request { get; init; }
 }
 
-public record IngestStatus
+public sealed record IngestStatus
 {
     public required string name { get; set; }
     public double size { get; set; }
@@ -105,7 +105,7 @@ public record IngestStatus
     public bool completed { get; set; }
 }
 
-public record Ingest
+public sealed record Ingest
 {
     public required string hash { get; init; }
     public IngestSonarr? sonarr { get; init; }

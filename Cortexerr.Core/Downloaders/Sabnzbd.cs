@@ -1,22 +1,62 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Cortexerr.Core.Configuration;
 using Cortexerr.Core.Errors;
 using Cortexerr.Core.Logging;
 
 namespace Cortexerr.Core.Downloaders;
 
-public record SabnzbdStatusResponse
+public enum NzbState
+{
+    COMPLETED,
+    FAILED,
+    QUEUE,
+    QUICK_CHECK,
+    VERIFYING,
+    REPAIRING,
+    FETCHING,
+    EXTRACTING,
+    MOVING,
+    RUNNING,
+    UNKNOWN
+}
+public static class NzbStateParser
+{
+    public static NzbState Parse(string value) => value switch
+    {
+        "completed" => NzbState.COMPLETED,
+        "failed" => NzbState.FAILED,
+        "queue" => NzbState.QUEUE,
+        "quickcheck" => NzbState.QUICK_CHECK,
+        "verifying" => NzbState.VERIFYING,
+        "repairing" => NzbState.REPAIRING,
+        "fetching" => NzbState.FETCHING,
+        "extracting" => NzbState.EXTRACTING,
+        "moving" => NzbState.MOVING,
+        "running" => NzbState.RUNNING,
+        _ => NzbState.UNKNOWN
+    };
+}
+public sealed class NzbStateConverter : JsonConverter<NzbState>
+{
+    public override NzbState Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        => NzbStateParser.Parse(reader.GetString() ?? "unknown");
+    public override void Write(Utf8JsonWriter writer, NzbState value, JsonSerializerOptions options)
+        => writer.WriteStringValue(value.ToString());
+}
+
+public sealed record SabnzbdStatusResponse
 {
     public bool status { get; init; }
     public string[]? nzo_ids { get; init; }
 }
 
-public record SabnzbdStageLog
+public sealed record SabnzbdStageLog
 {
     public string? name { get; init; }
     public string[]? actions { get; init; }
 }
-public record SabnzbdHistoryResponseSlot
+public sealed record SabnzbdHistoryResponseSlot
 {
     public string? action_line { get; init; }
     public string? duplicate_key { get; init; }
@@ -32,7 +72,8 @@ public record SabnzbdHistoryResponseSlot
     public int? download_time { get; init; }
     public string? storage { get; init; }
     public bool? has_rating { get; init; }
-    public string? status { get; init; }
+    [JsonConverter(typeof(NzbStateConverter))]
+    public NzbState status { get; init; }
     public string? script_line { get; init; }
     public long? completed { get; init; }
     public long? time_added { get; init; }
@@ -50,7 +91,7 @@ public record SabnzbdHistoryResponseSlot
     public string? url_info { get; init; }
     public SabnzbdStageLog[]? stage_log { get; init; }
 }
-public record SabnzbdHistoryResponseHistory
+public sealed record SabnzbdHistoryResponseHistory
 {
     public string? total_size { get; init; }
     public string? month_size { get; init; }
@@ -62,14 +103,15 @@ public record SabnzbdHistoryResponseHistory
     public long? last_history_update { get; init; }
     public string? version { get; init; }
 }
-public record SabnzbdHistoryResponse
+public sealed record SabnzbdHistoryResponse
 {
     public SabnzbdHistoryResponseHistory? history { get; init; }
 }
 
-public record SabnzbdQueueResponseSlot
+public sealed record SabnzbdQueueResponseSlot
 {
-    public string? status { get; init; }
+    [JsonConverter(typeof(NzbStateConverter))]
+    public NzbState status { get; init; }
     public int? index { get; init; }
     public string? password { get; init; }
     public string? avg_age { get; init; }
@@ -90,9 +132,10 @@ public record SabnzbdQueueResponseSlot
     public string? nzo_id { get; init; }
     public string? unpackopts { get; init; }
 }
-public record SabnzbdQueueResponseQueue
+public sealed record SabnzbdQueueResponseQueue
 {
-    public string? status { get; init; }
+    [JsonConverter(typeof(NzbStateConverter))]
+    public NzbState status { get; init; }
     public string? speedlimit { get; init; }
     public string? speedlimit_abs { get; init; }
     public bool? paused { get; init; }
@@ -126,14 +169,15 @@ public record SabnzbdQueueResponseQueue
     public string? quota { get; init; }
     public bool? have_quota { get; init; }
 }
-public record SabnzbdQueueResponse
+public sealed record SabnzbdQueueResponse
 {
     public SabnzbdQueueResponseQueue? queue { get; init; }
 }
 
-public record SabnzbdSlotResponse
+public sealed record SabnzbdSlotResponse
 {
-    public string? status { get; init; }
+    [JsonConverter(typeof(NzbStateConverter))]
+    public NzbState status { get; init; }
     public SabnzbdQueueResponseSlot? queue { get; init; }
     public SabnzbdHistoryResponseSlot? history { get; init; }
 }

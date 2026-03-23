@@ -47,7 +47,7 @@ public enum DllApiLevel
 /// <summary>
 /// config.json parsed data structure.
 /// </summary>
-public record ConfigArgs(
+public sealed record ConfigArgs(
         Uri host, // no default tries to get local ip to use before asigning fallback default
         Uri sonarr,
         Uri radarr,
@@ -61,8 +61,11 @@ public record ConfigArgs(
         string custom_dll_path = "",
         DllApiLevel custom_dll_api_level = DllApiLevel.DISABLED,
 
+        int max_queued_jobs = 2,
+
         string sonarr_download_path = "/sonarr",
         string radarr_download_path = "/radarr",
+        int download_timeout_factor = 5, // calculated by (download_timeout_factor (sqrt(download_size_gb))), e.g 20gb 22min, 100gb 50min, etc
         bool rss_sync = false, // checks for new releases only for sonarr
         int rss_sync_interval = 60,
         int api_retry_timeout = 3, // used for apis that data is not avaliable instantly timeout is 2^api_retry_timeout starts at 2^1
@@ -221,7 +224,7 @@ public static class Arg
 /// Uri type for JSON serialization converts Uri to string during serialization
 /// and back to a Uri during deserialization.
 /// </summary>
-public class UriJsonConverter : JsonConverter<Uri>
+public sealed class UriJsonConverter : JsonConverter<Uri>
 {
     public override Uri? Read(ref Utf8JsonReader reader, Type convert_type, JsonSerializerOptions options)
     {
