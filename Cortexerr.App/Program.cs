@@ -7,6 +7,10 @@ using System.Text.Json;
 using Cortexerr.Core.Indexers;
 using Cortexerr.Core.Arrs;
 using Cortexerr.App.Base;
+using Cortexerr.Extended.Indexer;
+using Cortexerr.Extended.DataStructures;
+using Cortexerr.Core.Ingest;
+using Cortexerr.Decisions.Logic.Filter;
 
 Arg.Initialize();
 Logger.Initialize(); // logger dependant on args 

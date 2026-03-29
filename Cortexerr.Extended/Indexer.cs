@@ -41,17 +41,26 @@ public sealed record IndexerSearchResultItem
     public int? usenet_tmdb_id { get; init; }
 }
 
-public sealed record IndexerSearchJob
+public sealed record IndexerSearchJobResults
 {
     public required List<List<JackettIndexerDetailsResults>> jackett_indexer_results { get; init; }
     public required List<List<NzbHydraIndexerDetailsResults>> hydra_indexer_results { get; init; }
     public required List<IndexerSearchResultItem> results { get; init; }
 }
 
-public sealed record IndexerSearchJobResponse
+public sealed record IndexerSearchJobTarget
 {
-    public required bool finished { get; set; } = false;
-    public required IndexerSearchJob indexer_search_job { get; init; }
+    public int? season { get; init; }
+    public int? episode { get; init; }
+    public int? tvdb_id { get; init; }
+    public int? tmdb_id { get; init; }
+}
+
+public sealed record IndexerSearchJob
+{
+    public required bool finished { get; set; }
+    public required IndexerSearchJobTarget target { get; set; }
+    public required IndexerSearchJobResults indexer_search_job { get; init; }
 }
 
 public sealed class Indexer
@@ -77,7 +86,7 @@ public sealed class Indexer
         return response;
     }
 
-    private IndexerSearchJob MergeResults()
+    private IndexerSearchJobResults MergeResults()
     {
         var jackett_indexer_results = new List<List<JackettIndexerDetailsResults>>();
         var hydra_indexer_results = new List<List<NzbHydraIndexerDetailsResults>>();
@@ -146,7 +155,7 @@ public sealed class Indexer
                 var name = results.title;
                 var link = results.link;
                 int size = 0;
-                if (int.TryParse(results.enclosure?.attributes?.length, out int size_value)) size = size_value;
+                // if (int.TryParse(results.enclosure?.attributes?.length, out int size_value)) size = size_value;
                 int? episode = null;
                 int files = 0;
                 int grabs = 0;
@@ -171,6 +180,11 @@ public sealed class Indexer
                         {
                             if (int.TryParse(attr_value, out int value))
                                 files = value;
+                        }
+                        if (attr_name == "size")
+                        {
+                            if (int.TryParse(attr_value, out int value))
+                                size = value;
                         }
                         if (attr_name == "grabs")
                         {
@@ -221,7 +235,7 @@ public sealed class Indexer
                 });
             }
         }
-        var search_job = new IndexerSearchJob
+        var search_job = new IndexerSearchJobResults
         {
             jackett_indexer_results = jackett_indexer_results,
             hydra_indexer_results = hydra_indexer_results,
@@ -297,7 +311,7 @@ public sealed class Indexer
         return Response.Success();
     }
 
-    async public Task<HandleResponse<IndexerSearchJobResponse>> Search(RequestJob request_job)
+    async public Task<HandleResponse<IndexerSearchJob>> Search(RequestJob request_job)
     {
         var ingest = request_job.ingest;
         if (ingest.sonarr != null)
@@ -321,11 +335,11 @@ public sealed class Indexer
                     }
                 }
                 if (_total_season_episode_count == null)
-                    return Response.Error<IndexerSearchJobResponse>(ErrorCode.INVALID_STATE, "(Indexer|Search) Could not get total season episode count");
+                    return Response.Error<IndexerSearchJob>(ErrorCode.INVALID_STATE, "(Indexer|Search) Could not get total season episode count");
             }
 
             if (_current_season_episode > _total_season_episode_count)
-                return Response.Error<IndexerSearchJobResponse>(ErrorCode.ALREADY_EXISTS, "(Indexer|Search) All episodes have already been processed");
+                return Response.Error<IndexerSearchJob>(ErrorCode.ALREADY_EXISTS, "(Indexer|Search) All episodes have already been processed");
 
 
             await SeriesSearch(sonarr.series, tvdb_id, season, episode);
@@ -338,13 +352,19 @@ public sealed class Indexer
                 }
             }
             var search_job = MergeResults();
-            request_job.indexer_search_jobs.Add(search_job);
-            var response = new IndexerSearchJobResponse
+            var response = new IndexerSearchJob
             {
                 finished = false,
+                target = new IndexerSearchJobTarget
+                {
+                    season = season,
+                    episode = _current_season_episode - 1,
+                    tvdb_id = tvdb_id
+                },
                 indexer_search_job = search_job
             };
             if (_current_season_episode > _total_season_episode_count) response.finished = true;
+            request_job.indexer_search_jobs.Add(response);
             return Response.Success(response);
         }
         else if (ingest.radarr != null)
@@ -361,15 +381,19 @@ public sealed class Indexer
                 }
             }
             var search_job = MergeResults();
-            request_job.indexer_search_jobs.Add(search_job);
-            var response = new IndexerSearchJobResponse
+            var response = new IndexerSearchJob
             {
                 finished = true,
+                target = new IndexerSearchJobTarget
+                {
+                    tmdb_id = ingest.sonarr?.request?.tvdb_id
+                },
                 indexer_search_job = search_job
             };
+            request_job.indexer_search_jobs.Add(response);
             return Response.Success(response);
         }
         return
-            Response.Error<IndexerSearchJobResponse>(ErrorCode.UNEXPECTED_ERROR, "(Indexer|Search) Ingest missing sonarr & radarr");
+            Response.Error<IndexerSearchJob>(ErrorCode.UNEXPECTED_ERROR, "(Indexer|Search) Ingest missing sonarr & radarr");
     }
 }
