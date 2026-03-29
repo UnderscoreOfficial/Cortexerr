@@ -1,17 +1,9 @@
 using System.Text.RegularExpressions;
+using Cortexerr.Core.DataStructures;
 using Cortexerr.Extended.DataStructures;
 using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
-
-public enum Resolution
-{
-    R480p,
-    R576p,
-    R720p,
-    R1080p,
-    R2160p
-}
 
 public partial class RequestResolutionMatching
 {

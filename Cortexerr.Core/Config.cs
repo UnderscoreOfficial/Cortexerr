@@ -8,6 +8,7 @@ using System.Net;
 using System.Text.Json.Serialization;
 using Cortexerr.Core.Logging;
 using Cortexerr.Core.Utilities;
+using Cortexerr.Core.DataStructures;
 
 // this is the only file that should ever have a hard crash and throw errors
 //
@@ -48,6 +49,7 @@ public enum DllApiLevel
 /// config.json parsed data structure.
 /// </summary>
 public sealed record ConfigArgs(
+        // misc (must be initialized)
         Uri host, // no default tries to get local ip to use before asigning fallback default
         Uri sonarr,
         Uri radarr,
@@ -58,19 +60,30 @@ public sealed record ConfigArgs(
         string host_api_key,
         string[] release_groups, // defined as an array of groups eg. [group1, group2]  
 
+        // api 
         string custom_dll_path = "",
         DllApiLevel custom_dll_api_level = DllApiLevel.DISABLED,
 
-        int max_queued_jobs = 2,
-        float download_max_size = 0, // 0 is unlimited greater than 0 will remove any results that are bigger.
+        // quality control 
+        RipType minimum_riptype = RipType.DVD, // removes all results lower than set riptype
+        Resolution minimum_resolution = Resolution.R480p, // removes all results lower than set resolution
+        bool high_dynamic_range_hdr_allowed = true, // removes results that only have high dynamic range support if false
+        bool dolby_vision_dv_allowed = false, // removes results that only have dolby vision support if false
 
+        // download options
         string sonarr_download_path = "/sonarr",
         string radarr_download_path = "/radarr",
         int download_timeout_factor = 5, // calculated by (download_timeout_factor (sqrt(download_size_gb))), e.g 20gb 22min, 100gb 50min, etc
-        bool rss_sync = false, // checks for new releases only for sonarr
-        int rss_sync_interval = 60,
         int api_retry_timeout = 3, // used for apis that data is not avaliable instantly timeout is 2^api_retry_timeout starts at 2^1
                                    // will call endpoints n+1 times where +1 is a retry without any time out only getting the error messages 
+        int max_queued_jobs = 2,
+        float download_max_size = 0, // 0 is unlimited greater than 0 will remove any results that are bigger.
+
+        // opt in features (planned will not be implemented for some time)
+        bool rss_sync = false, // checks for new releases only for sonarr
+        int rss_sync_interval = 60,
+
+        // niche options (can help in some cases)
         bool tv_anime = false, // can increase discovering of anime by enabling its category for tv searches
         bool tv_sports = false, // can increase discovering of sports by enabling its category for tv searches
         bool movie_foreign = false, // can increase discovering of foreign movies by enabling its category for movie searches

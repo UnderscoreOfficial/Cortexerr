@@ -23,10 +23,16 @@ public sealed record DecisionLogicRequestMatching
   public required DecisionLogicMatchedItem matched { get; init; }
   public required IndexerSearchResultItem item { get; init; }
 }
+public sealed record DecisionLogicMatchingJob
+{
+  public required RequestJob request_job { get; init; }
+  public required IndexerSearchJob search_job { get; init; }
+  public required List<DecisionLogicRequestMatching> results { get; init; }
+}
 
 public static class RequestMatching
 {
-  public static List<DecisionLogicRequestMatching> Match(RequestJob request_job, IndexerSearchJob search_job)
+  public static DecisionLogicMatchingJob Match(RequestJob request_job, IndexerSearchJob search_job)
   {
     var sonarr = request_job.ingest.sonarr;
     var radarr = request_job.ingest.radarr;
@@ -34,7 +40,6 @@ public static class RequestMatching
 
     foreach (var job in search_job.indexer_search_job.results)
     {
-      // all name based filtering is only used for torrents usenet exclusively uses ids
       if (sonarr != null)
       {
         var sort_title = sonarr.series.sort_title;
@@ -116,6 +121,6 @@ public static class RequestMatching
         results.Add(request_matching);
       }
     }
-    return results;
+    return new DecisionLogicMatchingJob { request_job = request_job, search_job = search_job, results = results };
   }
 }
