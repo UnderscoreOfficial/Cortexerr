@@ -1,21 +1,9 @@
 using System.Text.RegularExpressions;
+using Cortexerr.Core.DataStructures;
 using Cortexerr.Extended.DataStructures;
 using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
-
-public enum AudioCodec
-{
-    AAC,
-    AC3,           // Dolby Digital
-    EAC3,          // Dolby Digital Plus / DD+
-    DTS,
-    DTS_HD,         // DTS-HD MA
-    DTS_X,          // DTS:X
-    TRUE_HD,        // Dolby TrueHD
-    TRUE_HD_ATMOS,   // TrueHD with Atmos
-    ATMOS,         // Atmos without confirmed TrueHD context
-}
 
 public partial class RequestAudioCodecMatching
 {

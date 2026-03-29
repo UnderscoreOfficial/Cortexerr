@@ -10,7 +10,7 @@ using Cortexerr.App.Base;
 using Cortexerr.Extended.Indexer;
 using Cortexerr.Extended.DataStructures;
 using Cortexerr.Core.Ingest;
-using Cortexerr.Decisions.Logic.Filter;
+using Cortexerr.Decisions.Logic.Filtering;
 
 Arg.Initialize();
 Logger.Initialize(); // logger dependant on args 
@@ -19,5 +19,5 @@ Env.Initialize();
 Config.Initialize();
 // everything past must not throw errors
 
-State.Initialize();
-Routes.Initialize();
+// State.Initialize();
+// Routes.Initialize();

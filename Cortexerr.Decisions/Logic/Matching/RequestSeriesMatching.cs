@@ -4,11 +4,18 @@ using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
 
+public enum PackType
+{
+    SEASON,
+    EPISODE,
+    FULL,
+}
+
 public sealed record RequestSeriesMatchingResults
 {
     public required int[] seasons { get; init; }
     public required int[] episodes { get; init; }
-    public bool pack { get; init; }
+    public PackType? pack { get; set; }
 }
 
 public static class RequestSeriesMatching
@@ -47,7 +54,7 @@ public static class RequestSeriesMatching
         {
             seasons = seasons.ToArray(),
             episodes = episodes.ToArray(),
-            pack = pack_match
+            pack = pack_match ? PackType.FULL : null
         };
     }
 }

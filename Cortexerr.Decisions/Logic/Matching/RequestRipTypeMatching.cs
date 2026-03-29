@@ -1,21 +1,9 @@
 using System.Text.RegularExpressions;
+using Cortexerr.Core.DataStructures;
 using Cortexerr.Extended.DataStructures;
 using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
-
-public enum RipType
-{
-    REMUX,
-    BLURAY,
-    WEB_DL,
-    WEB_RIP,
-    HDTV,
-    SDTV,
-    DVD,
-    SCREENER,
-    CAM
-}
 
 public partial class RequestRipTypeMatching
 {

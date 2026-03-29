@@ -1,20 +1,9 @@
 using System.Text.RegularExpressions;
+using Cortexerr.Core.DataStructures;
 using Cortexerr.Extended.DataStructures;
 using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
-
-public enum VideoCodec
-{
-    H264,
-    H265,
-    AV1,
-    XVID,
-    DIVX,
-    MPEG2,
-    MPEG4,
-    VC1
-}
 
 public partial class RequestVideoCodecMatching
 {
