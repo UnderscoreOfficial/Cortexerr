@@ -62,6 +62,7 @@ public sealed record ConfigArgs(
         DllApiLevel custom_dll_api_level = DllApiLevel.DISABLED,
 
         int max_queued_jobs = 2,
+        float download_max_size = 0, // 0 is unlimited greater than 0 will remove any results that are bigger.
 
         string sonarr_download_path = "/sonarr",
         string radarr_download_path = "/radarr",

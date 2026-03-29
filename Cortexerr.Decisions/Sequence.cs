@@ -39,6 +39,7 @@ public static class Sequence
                 Logger.Log.Error($"(Sequence|Sonarr) {ErrorCode.UNEXPECTED_ERROR.ToString()}{error_message_details}");
                 return;
             }
+            // search_job.data.indexer_search_job
 
             // temp example structure below not real methods
             logic.Example();

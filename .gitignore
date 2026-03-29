@@ -5,3 +5,4 @@ bin/
 data/
 logs/
 stats_logging.js
+*.txt
