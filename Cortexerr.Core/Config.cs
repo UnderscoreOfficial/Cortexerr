@@ -59,13 +59,26 @@ public sealed record ConfigArgs(
         Uri sabnzbd,
         string host_api_key,
         string[] release_groups, // defined as an array of groups eg. [group1, group2]  
+        string[] filtered_keywords, // removes items containing specific keyword strings
 
-        // api 
-        string custom_dll_path = "",
-        DllApiLevel custom_dll_api_level = DllApiLevel.DISABLED,
+        // TMP remote move
+        string tmp_move_remote_ip = "",
+        string tmp_move_remote_user = "",
+        string tmp_move_id_rsa_path = "",
+
+        // move paths
+        string sabnzbd_path = "",
+        string rdtclient_path = "",
+        string sonarr_path = "",
+        string radarr_path = "",
+
+        // toggle options
+        bool jackett_enabled = true, // enables or disabled jackett indexer
+        bool hydra_enabled = true, // enables or disabled nzb hydra indexer
 
         // quality control 
         RipType minimum_riptype = RipType.DVD, // removes all results lower than set riptype
+        bool allow_unknown_riptypes = true, // removes all without any matched riptypes
         Resolution minimum_resolution = Resolution.R480p, // removes all results lower than set resolution
         bool high_dynamic_range_hdr_allowed = true, // removes results that only have high dynamic range support if false
         bool dolby_vision_dv_allowed = false, // removes results that only have dolby vision support if false
@@ -77,11 +90,15 @@ public sealed record ConfigArgs(
         int api_retry_timeout = 3, // used for apis that data is not avaliable instantly timeout is 2^api_retry_timeout starts at 2^1
                                    // will call endpoints n+1 times where +1 is a retry without any time out only getting the error messages 
         int max_queued_jobs = 2,
-        float download_max_size = 0, // 0 is unlimited greater than 0 will remove any results that are bigger.
+        float download_max_size = 0, // 0 is unlimited greater than 0 will remove any results that are bigger. (need to convert from gb to bytes)
 
         // opt in features (planned will not be implemented for some time)
         bool rss_sync = false, // checks for new releases only for sonarr
         int rss_sync_interval = 60,
+
+        // api 
+        string custom_dll_path = "",
+        DllApiLevel custom_dll_api_level = DllApiLevel.DISABLED,
 
         // niche options (can help in some cases)
         bool tv_anime = false, // can increase discovering of anime by enabling its category for tv searches
@@ -317,6 +334,7 @@ public static class Config
                 ParseUri(Const.RDTCLIENT_PORT),
                 ParseUri(Const.SABNZBD_PORT),
                 Utils.SecureRandomHexadecimal(),
+                new string[0],
                 new string[0]
             );
     }

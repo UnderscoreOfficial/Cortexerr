@@ -1,3 +1,10 @@
+### Important
+  Current state of the project has reached a very very early mvp stage. However this is the first major milestone of a partially working app. The only working 
+  process loop of the app is using sonarr, nzbhydra2, and sabnzbd, explicitly stated the jackett and sabnzbd process and likely radarr will not work as of yet
+  all focus has been on establishing 1 use case to be even midly reliable which so far it has the tested process loop has had its fair share of expected and 
+  unexpected bug, logical, balancing, sorting and ranking. Some of these issues have already been addressed and or fixed with the current state of this process
+  working supprisingly more reliablly given the apps current state however its very far from the ideal and target goal of stability and reliability.
+
 # Cortexerr
 Sonarr / Radarr - Give the arr stack a lobotomy, cortexerr is a (in very early alpha) brain replacement. Cortexerr replaces Sonarr / Radarr's ranking and 
 selection logic with a highly opinionated ranking algorithm. For people who want a deterministic, and direct aggresive goal oriented selections. When good
@@ -44,6 +51,8 @@ Downloaders less of concrete reasons more at tooling qbittorrent was only becaus
 as for usenet Sabnzbd seemed like a reasonable enough pick this was really scope and tooling limiting. 
 
 This was built with [C#](https://dotnet.microsoft.com/en-us/languages/csharp) ,
+
+## ALL BELOW COMING SOON...
 
 ## Screenshots
 

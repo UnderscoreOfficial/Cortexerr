@@ -1,7 +1,9 @@
+using System.Text.Json;
 using Cortexerr.Core.Configuration;
 using Cortexerr.Core.Downloaders;
 using Cortexerr.Core.Errors;
 using Cortexerr.Core.Ingest;
+using Cortexerr.Core.Logging;
 using Cortexerr.Extended.DataStructures;
 using Cortexerr.Extended.Indexer;
 
@@ -16,8 +18,8 @@ public sealed record DownloadJobResults
 {
   public required IndexerSearchResultItem item { get; init; }
   public required HandleResponse<DownloadJobResultsInstance> instance { get; init; }
-  public TorrentState? rdtclient_state { get; init; }
-  public NzbState? sabnzbd_state { get; init; }
+  public HandleResponse<RdtClientTorrentResponse>? rdtclient_state { get; init; }
+  public HandleResponse<SabnzbdSlotResponse>? sabnzbd_state { get; init; }
 }
 public sealed record DownloadJob
 {
@@ -30,8 +32,8 @@ public static class Downloader
       DownloadJob download_job,
       IndexerSearchResultItem item,
       HandleResponse<DownloadJobResultsInstance> instance,
-      TorrentState? rdtclient_state = null,
-      NzbState? sabnzbd_state = null)
+      HandleResponse<RdtClientTorrentResponse>? rdtclient_state = null,
+      HandleResponse<SabnzbdSlotResponse>? sabnzbd_state = null)
   {
     var download_job_results = new DownloadJobResults
     {
@@ -46,7 +48,8 @@ public static class Downloader
 
   async private static Task<HandleResponse<DownloadJobResults>> SabnzbdDownload(
       DownloadJob download_job,
-      IndexerSearchResultItem item)
+      IndexerSearchResultItem item,
+      Ingest ingest)
   {
     var sabnzbd = new Sabnzbd(item.link);
     var response = await sabnzbd.Add();
@@ -62,7 +65,7 @@ public static class Downloader
       NzbState? last_state = null;
       DateTime? max_time = null;
 
-      var size = 1;
+      var size = 1d;
       var timeout = 5d;
       var validated_size = false;
 
@@ -89,27 +92,46 @@ public static class Downloader
         {
           if (parsed_size?[1] == "GB")
           {
-            if (int.TryParse(parsed_size[0], out int value)) size = value;
+            if (double.TryParse(parsed_size[0], out double value)) size = value;
+            timeout = Config.ARGS.download_timeout_factor * Math.Sqrt(size);
+            validated_size = true;
           }
-          timeout = Config.ARGS.download_timeout_factor * Math.Sqrt(size);
-          validated_size = true;
         }
+
+        Console.WriteLine("timeout: " + timeout);
+        Console.WriteLine("max_time: " + max_time);
+        Console.WriteLine("datetime_now > max_time" + (DateTime.Now >= max_time));
+
+        if (int.TryParse(status.data.queue?.percentage, out int nzb_percentage))
+          ingest.status.progress = nzb_percentage / 100.00f;
+
+        Logger.Log.Information(JsonSerializer.Serialize(status.data));
 
         var state = status.data.status;
         switch (state)
         {
           case NzbState.COMPLETED:
-            var results = BuildDownloadJobResults(download_job, item,
-                Response.Success(new DownloadJobResultsInstance { sabnzbd = sabnzbd }), null, state);
+            var results = BuildDownloadJobResults(download_job, item, Response.Success(new DownloadJobResultsInstance { sabnzbd = sabnzbd }), null, status);
             return Response.Success(results);
           case NzbState.FAILED:
             await sabnzbd.Delete();
             error_message = $"(Downloader|SabnzbdDownload) Failed to download ({item.link})";
             BuildDownloadJobResults(download_job, item,
-                Response.Error<DownloadJobResultsInstance>(ErrorCode.REJECTED, error_message), null, state);
+                Response.Error<DownloadJobResultsInstance>(ErrorCode.REJECTED, error_message), null, status);
             return Response.Error<DownloadJobResults>(ErrorCode.REJECTED, error_message);
           default:
             var timed_out = false;
+            if (double.TryParse(status.data.queue?.mbmissing, out double mbmissing))
+            {
+              if (mbmissing > 80)
+              {
+                await sabnzbd.Delete();
+                error_message = $"(Downloader|SabnzbdDownload) Missing ({mbmissing}) mb, failed ({item.link})";
+                BuildDownloadJobResults(download_job, item,
+                    Response.Error<DownloadJobResultsInstance>(ErrorCode.REJECTED, error_message), null, status);
+                return Response.Error<DownloadJobResults>(ErrorCode.REJECTED, error_message);
+              }
+            }
             if (last_state == state)
             {
               if (DateTime.Now >= max_time) timed_out = true;
@@ -121,10 +143,16 @@ public static class Downloader
             if (timed_out)
             {
               await sabnzbd.Delete();
-              error_message = $"(Downloader|SabnzbdDownload) Timed out ({state.ToString()})";
-              BuildDownloadJobResults(download_job, item,
-                  Response.Error<DownloadJobResultsInstance>(ErrorCode.TIMEOUT, error_message), null, state);
-              return Response.Error<DownloadJobResults>(ErrorCode.TIMEOUT, error_message);
+              Logger.Log.Information("STATUS AFTER DELETE TIMEOUT");
+              Logger.Log.Information("STATUS AFTER DELETE TIMEOUT");
+              Logger.Log.Information(JsonSerializer.Serialize(status));
+              if (status.error != null || status.data == null)
+              {
+                error_message = $"(Downloader|SabnzbdDownload) Timed out ({state.ToString()})";
+                BuildDownloadJobResults(download_job, item,
+                    Response.Error<DownloadJobResultsInstance>(ErrorCode.TIMEOUT, error_message), null, status);
+                return Response.Error<DownloadJobResults>(ErrorCode.TIMEOUT, error_message);
+              }
             }
             break;
         }
@@ -139,7 +167,8 @@ public static class Downloader
 
   async private static Task<HandleResponse<DownloadJobResults>> RdtClientDownload(
       DownloadJob download_job,
-      IndexerSearchResultItem item)
+      IndexerSearchResultItem item,
+      Ingest ingest)
   {
     var rdtclient = new RdtClient(item.link);
     var response = await rdtclient.Add();
@@ -201,14 +230,14 @@ public static class Downloader
           case TorrentState.STALLED_UP:
           case TorrentState.UPLOADING:
             var results = BuildDownloadJobResults(download_job, item,
-                Response.Success(new DownloadJobResultsInstance { rdtclient = rdtclient }), state);
+                Response.Success(new DownloadJobResultsInstance { rdtclient = rdtclient }), status);
             return Response.Success(results);
           case TorrentState.ERROR:
           case TorrentState.MISSING_FILES:
             await rdtclient.Delete();
             error_message = $"(Downloader|RdtClientDownload) Failed to download ({item.link})";
             BuildDownloadJobResults(download_job, item,
-                Response.Error<DownloadJobResultsInstance>(ErrorCode.REJECTED, error_message), state);
+                Response.Error<DownloadJobResultsInstance>(ErrorCode.REJECTED, error_message), status);
             return Response.Error<DownloadJobResults>(ErrorCode.REJECTED, error_message);
           default:
             var timed_out = false;
@@ -225,7 +254,7 @@ public static class Downloader
               await rdtclient.Delete();
               error_message = $"(Downloader|RdtClientDownload) Timed out ({state.ToString()})";
               BuildDownloadJobResults(download_job, item,
-                  Response.Error<DownloadJobResultsInstance>(ErrorCode.TIMEOUT, error_message), state);
+                  Response.Error<DownloadJobResultsInstance>(ErrorCode.TIMEOUT, error_message), status);
               return Response.Error<DownloadJobResults>(ErrorCode.TIMEOUT, error_message);
             }
             break;
@@ -248,7 +277,7 @@ public static class Downloader
     {
       if (item.type == IndexerResultType.NZBHYDRA)
       {
-        var sabnzbd = await SabnzbdDownload(download_job, item);
+        var sabnzbd = await SabnzbdDownload(download_job, item, request_job.ingest);
         if (sabnzbd.error?.code == ErrorCode.REJECTED || sabnzbd.error?.code == ErrorCode.TIMEOUT)
         {
           continue;
@@ -258,7 +287,7 @@ public static class Downloader
       }
       if (item.type == IndexerResultType.JACKETT)
       {
-        var rdtclient = await RdtClientDownload(download_job, item);
+        var rdtclient = await RdtClientDownload(download_job, item, request_job.ingest);
         if (rdtclient.error?.code == ErrorCode.REJECTED || rdtclient.error?.code == ErrorCode.TIMEOUT)
         {
           continue;

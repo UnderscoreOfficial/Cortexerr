@@ -51,9 +51,10 @@ public static class Response
     {
         return new HandleResponse<T> { data = data };
     }
-    public static HandleResponse<object> Error(ErrorCode code, string message)
+    public static HandleResponse<object> Error(ErrorCode code, string message, bool log = true)
     {
-        Logger.Log.Error(message);
+        if (log)
+            Logger.Log.Error(message);
         return new HandleResponse<object>
         {
             error = new ErrorInfo
@@ -63,9 +64,10 @@ public static class Response
             }
         };
     }
-    public static HandleResponse<T> Error<T>(ErrorCode code, string message)
+    public static HandleResponse<T> Error<T>(ErrorCode code, string message, bool log = true)
     {
-        Logger.Log.Error(message);
+        if (log)
+            Logger.Log.Error(message);
         return new HandleResponse<T>
         {
             error = new ErrorInfo
@@ -100,7 +102,7 @@ public static class Response
 public static class Error
 {
     // no data
-    public static HandleResponse<object> Handle(Action method)
+    public static HandleResponse<object> Handle(Action method, bool log = true)
     {
         try
         {
@@ -109,12 +111,12 @@ public static class Error
         }
         catch (Exception error)
         {
-            return Response.Error(ErrorCode.UNEXPECTED_ERROR, error.ToString());
+            return Response.Error(ErrorCode.UNEXPECTED_ERROR, error.ToString(), log);
         }
     }
 
     // with data
-    public static HandleResponse<TResult> Handle<TResult>(Func<TResult> method)
+    public static HandleResponse<TResult> Handle<TResult>(Func<TResult> method, bool log = true)
     {
         try
         {
@@ -123,12 +125,12 @@ public static class Error
         }
         catch (Exception error)
         {
-            return Response.Error<TResult>(ErrorCode.UNEXPECTED_ERROR, error.ToString());
+            return Response.Error<TResult>(ErrorCode.UNEXPECTED_ERROR, error.ToString(), log);
         }
     }
 
     // // async no data
-    public static async Task<HandleResponse<object>> HandleAsync(Func<Task> method)
+    public static async Task<HandleResponse<object>> HandleAsync(Func<Task> method, bool log = true)
     {
         try
         {
@@ -137,13 +139,14 @@ public static class Error
         }
         catch (Exception error)
         {
-            return Response.Error(ErrorCode.UNEXPECTED_ERROR, error.ToString());
+            return Response.Error(ErrorCode.UNEXPECTED_ERROR, error.ToString(), log);
         }
     }
 
     // // async with data
     public static async Task<HandleResponse<TResult>> HandleAsync<TResult>(
-            Func<Task<TResult>> method
+            Func<Task<TResult>> method,
+            bool log = true
     )
     {
         try
@@ -153,7 +156,7 @@ public static class Error
         }
         catch (Exception error)
         {
-            return Response.Error<TResult>(ErrorCode.UNEXPECTED_ERROR, error.ToString());
+            return Response.Error<TResult>(ErrorCode.UNEXPECTED_ERROR, error.ToString(), log);
         }
     }
 }

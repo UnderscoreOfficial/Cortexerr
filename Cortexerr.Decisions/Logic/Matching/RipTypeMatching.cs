@@ -5,25 +5,25 @@ using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
 
-public partial class RequestRipTypeMatching
+public partial class RipTypeMatching
 {
     [GeneratedRegex(@"\bremux\b")]
     private static partial Regex RemuxRegex();
-    [GeneratedRegex(@"\b(blu[\. \-]?ray|bluray|bdmv|bdrip)\b")]
+    [GeneratedRegex(@"\b(blu[\ \:\-]?ray|bdmv|bdrip)\b")]
     private static partial Regex BlurayRegex();
-    [GeneratedRegex(@"\b(web[\. \-]?dl)\b")]
+    [GeneratedRegex(@"\b(web[\ \:\-]?dl)\b")]
     private static partial Regex WebDlRegex();
-    [GeneratedRegex(@"\b(webrip|web[\. \-]?rip)\b")]
+    [GeneratedRegex(@"\b(web[\ \:\-]?rip)\b")]
     private static partial Regex WebRipRegex();
     [GeneratedRegex(@"\bhdtv\b")]
     private static partial Regex HdtvRegex();
-    [GeneratedRegex(@"\b(sdtv|pdtv|dvbrip|dvb[\. \-]?rip)\b")]
+    [GeneratedRegex(@"\b(sdtv|pdtv|dvb[\ \:\-]?rip)\b")]
     private static partial Regex SdtvRegex();
-    [GeneratedRegex(@"\b(dvd[\. \-]?rip|dvdrip|dvd[\. \-]?scr|dvdscr|dvd)\b")]
+    [GeneratedRegex(@"\b(dvd[\ \:\-]?rip|dvd[\ \:\-]?scr|dvd)\b")]
     private static partial Regex DvdRegex();
     [GeneratedRegex(@"\b(scr|screener)\b")]
     private static partial Regex ScreenerRegex();
-    [GeneratedRegex(@"\b(cam|camrip|hdcam|hd[\. \-]?cam|telesync|telecine)\b")]
+    [GeneratedRegex(@"\b(cam|camrip|hd[\ \:\-]?cam|telesync|telecine)\b")]
     private static partial Regex CamRegex();
     [GeneratedRegex(@"(?<![a-z])(ts|tc)(?![a-z])")]
     private static partial Regex TsTcRegex();

@@ -4,10 +4,10 @@ using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
 
-public static class RequestDolbyVisionMatching
+public static class DolbyVisionMatching
 {
     public static bool Match(RequestJob request_job, IndexerSearchJob search_job, string name)
     {
-        return Regex.IsMatch(name, @"\b(dolby\.?vision|dv)\b");
+        return Regex.IsMatch(name, @"\b(dolby[\ \:\-]?vision|dv)\b");
     }
 }

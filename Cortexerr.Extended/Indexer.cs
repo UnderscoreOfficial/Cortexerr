@@ -1,10 +1,11 @@
-using System.Text;
+using System.Text.Json;
 using Cortexerr.Core.Arrs;
 using Cortexerr.Core.Configuration;
 using Cortexerr.Core.Errors;
 using Cortexerr.Core.Indexers;
 using Cortexerr.Core.Logging;
 using Cortexerr.Extended.DataStructures;
+using Newtonsoft.Json.Linq;
 
 namespace Cortexerr.Extended.Indexer;
 
@@ -39,6 +40,7 @@ public sealed record IndexerSearchResultItem
     public int? usenet_episode { get; init; }
     public int? usenet_tvdb_id { get; init; }
     public int? usenet_tmdb_id { get; init; }
+    public string? usenet_imdb_id { get; init; }
 }
 
 public sealed record IndexerSearchJobResults
@@ -70,22 +72,6 @@ public sealed class Indexer
     private int? _total_season_episode_count { get; set; } = null;
     private int? _current_season_episode { get; set; } = 1;
 
-    private string? ReleaseGroups()
-    {
-        string? response = null;
-        if (Config.ARGS.release_groups.Length > 0)
-        {
-            var string_builder = new StringBuilder();
-            foreach (var group in Config.ARGS.release_groups)
-            {
-                string_builder.Append(group);
-                string_builder.Append(" ");
-            }
-            response = string_builder.ToString();
-        }
-        return response;
-    }
-
     private IndexerSearchJobResults MergeResults()
     {
         var jackett_indexer_results = new List<List<JackettIndexerDetailsResults>>();
@@ -99,8 +85,8 @@ public sealed class Indexer
                 var name = results.title;
                 var link = results.link;
                 var indexer = results.jackett_indexer?.text;
-                int size = 0;
-                if (int.TryParse(results.size, out int size_value)) size = size_value;
+                long size = 0;
+                if (long.TryParse(results.size, out long size_value)) size = size_value;
                 DateTimeOffset? upload_date = null;
                 if (results.pub_date != null)
                 {
@@ -154,13 +140,13 @@ public sealed class Indexer
             {
                 var name = results.title;
                 var link = results.link;
-                int size = 0;
-                // if (int.TryParse(results.enclosure?.attributes?.length, out int size_value)) size = size_value;
+                long size = 0;
                 int? episode = null;
                 int files = 0;
                 int grabs = 0;
                 int? tvdb_id = null;
                 int? tmdb_id = null;
+                string? imdb_id = null;
                 string? indexer = null;
                 DateTimeOffset? upload_date = null;
                 if (results.attr != null)
@@ -183,7 +169,7 @@ public sealed class Indexer
                         }
                         if (attr_name == "size")
                         {
-                            if (int.TryParse(attr_value, out int value))
+                            if (long.TryParse(attr_value, out long value))
                                 size = value;
                         }
                         if (attr_name == "grabs")
@@ -197,6 +183,11 @@ public sealed class Indexer
                                 tvdb_id = value;
                         }
                         if (attr_name == "tmdbid")
+                        {
+                            if (!string.IsNullOrEmpty(attr_name))
+                                imdb_id = attr_value;
+                        }
+                        if (attr_name == "imdbid")
                         {
                             if (int.TryParse(attr_value, out int value))
                                 tmdb_id = value;
@@ -231,7 +222,8 @@ public sealed class Indexer
                     usenet_grabs = grabs,
                     usenet_episode = episode,
                     usenet_tmdb_id = tmdb_id,
-                    usenet_tvdb_id = tvdb_id
+                    usenet_tvdb_id = tvdb_id,
+                    usenet_imdb_id = imdb_id
                 });
             }
         }
@@ -252,26 +244,37 @@ public sealed class Indexer
             string? target = null
     )
     {
-        var jackett_query = sonarr.title_slug?.Replace("-", " ") ?? "";
-        if (string.IsNullOrWhiteSpace(target)) jackett_query = $"{jackett_query} {target}";
 
         HandleResponse<JackettIndexerSearchResults>? jackett = null;
-        if (jackett_results.Count == 0)
+        if (!Config.ARGS.jackett_enabled && !Config.ARGS.hydra_enabled)
+            Response.Error(ErrorCode.DISABLED, "(Indexer|SeriesSearch) Both Jackett & NzbHydra disabled can't preform any searches");
+
+        if (Config.ARGS.jackett_enabled)
         {
-            jackett = await Jackett.TvSearch(jackett_query, tvdb_id, season, episode);
-            if (jackett.data != null)
+            var jackett_query = sonarr.title_slug?.Replace("-", " ") ?? "";
+            if (string.IsNullOrWhiteSpace(target)) jackett_query = $"{jackett_query} {target}";
+            if (jackett_results.Count == 0)
             {
-                jackett_results.Add(jackett.data);
+                jackett = await Jackett.TvSearch(jackett_query, tvdb_id, season, episode);
+                if (jackett.data != null)
+                {
+                    jackett_results.Add(jackett.data);
+                }
             }
         }
-        var hydra = await NzbHydra.TvSearch(tvdb_id, target, season, _current_season_episode);
-        if (hydra.data != null)
+
+        HandleResponse<NzbHydraSearchResults>? hydra = null;
+        if (Config.ARGS.hydra_enabled)
         {
-            hydra_results.Add(hydra.data);
-            _current_season_episode++;
+            hydra = await NzbHydra.TvSearch(tvdb_id, target, season, _current_season_episode);
+            if (hydra.data != null)
+            {
+                hydra_results.Add(hydra.data);
+                _current_season_episode++;
+            }
         }
 
-        if (jackett?.error != null && hydra.error != null)
+        if (jackett?.error != null && hydra?.error != null)
         {
             Logger.Log.Error($"[{jackett.error.code}] {jackett.error.message}");
             Logger.Log.Error($"[{hydra.error.code}] {hydra.error.message}");
@@ -279,7 +282,7 @@ public sealed class Indexer
                 Response.Error(ErrorCode.UNEXPECTED_ERROR, "(Indexer|SeriesSearch) Both Jackett & NzbHydra returned unexpected errors");
         }
 
-        if (_current_season_episode > 1 && hydra.error != null)
+        if (_current_season_episode > 1 && hydra?.error != null)
         {
             return
                 Response.Error(hydra.error.code, hydra.error.message);
@@ -317,30 +320,41 @@ public sealed class Indexer
         if (ingest.sonarr != null)
         {
             var sonarr = ingest.sonarr;
+            if (sonarr == null)
+                return Response.Error<IndexerSearchJob>(ErrorCode.INVALID_STATE, "(Indexer|Search) sonarr is null");
             var tvdb_id = ingest.sonarr.request.tvdb_id;
             var season = ingest.sonarr.request.season;
+            if (season == null)
+                return Response.Error<IndexerSearchJob>(ErrorCode.INVALID_STATE, "(Indexer|Search) season is null");
             var episode = ingest.sonarr.request.episode;
 
             if (_total_season_episode_count == null)
             {
-                if (sonarr.series.seasons != null)
+                if (sonarr.request.episode == null)
                 {
-                    foreach (var series_season in sonarr.series.seasons)
+                    if (sonarr.series.seasons != null)
                     {
-                        if (series_season.season_number == sonarr.request.season)
+                        foreach (var series_season in sonarr.series.seasons)
                         {
-                            _total_season_episode_count = series_season.statistics?.total_episode_count;
-                            break;
+                            if (series_season.season_number == sonarr.request.season)
+                            {
+                                _total_season_episode_count = series_season.statistics?.total_episode_count;
+                                break;
+                            }
                         }
                     }
+                    if (_total_season_episode_count == null)
+                        return Response.Error<IndexerSearchJob>(ErrorCode.INVALID_STATE, "(Indexer|Search) Could not get total season episode count");
                 }
-                if (_total_season_episode_count == null)
-                    return Response.Error<IndexerSearchJob>(ErrorCode.INVALID_STATE, "(Indexer|Search) Could not get total season episode count");
+                else if (sonarr.request.episode != null)
+                {
+                    _current_season_episode = sonarr.request.episode;
+                    _total_season_episode_count = sonarr.request.episode;
+                }
             }
 
             if (_current_season_episode > _total_season_episode_count)
                 return Response.Error<IndexerSearchJob>(ErrorCode.ALREADY_EXISTS, "(Indexer|Search) All episodes have already been processed");
-
 
             await SeriesSearch(sonarr.series, tvdb_id, season, episode);
 

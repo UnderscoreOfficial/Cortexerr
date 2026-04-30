@@ -1,3 +1,4 @@
+using Cortexerr.Core.DataStructures;
 using Cortexerr.Core.Logging;
 using Cortexerr.Extended.DataStructures;
 using Cortexerr.Extended.Indexer;
@@ -10,8 +11,8 @@ public sealed record DecisionLogicMatchedItem
   public bool dolby_vision { get; init; }
   public required string[] languages { get; init; }
   public string? release_group { get; init; }
-  public required RequestReleaseNameMatchingResults fuzzy_name { get; init; }
-  public RequestSeriesMatchingResults? series { get; init; }
+  public required ReleaseNameMatchingResults fuzzy_name { get; init; }
+  public SeriesMatchingResults? series { get; init; }
   public Resolution? resolution { get; init; }
   public AudioCodec? audio_codec { get; init; }
   public VideoCodec? video_codec { get; init; }
@@ -30,7 +31,7 @@ public sealed record DecisionLogicMatchingJob
   public required List<DecisionLogicRequestMatching> results { get; init; }
 }
 
-public static class RequestMatching
+public static class Matching
 {
   public static DecisionLogicMatchingJob Match(RequestJob request_job, IndexerSearchJob search_job)
   {
@@ -50,16 +51,16 @@ public static class RequestMatching
         }
         var name = job.name.ToLowerInvariant();
 
-        var series_match = RequestSeriesMatching.Match(request_job, search_job, name);
-        var language_match = RequestLanguageMatching.Match(request_job, search_job, name);
-        var release_name_match = RequestReleaseNameMatching.Match(request_job, search_job, name);
-        var resolution_match = RequestResolutionMatching.Match(request_job, search_job, name);
-        var high_dynamic_range_match = RequestHighDynamicRangeMatching.Match(request_job, search_job, name);
-        var dolby_vision_match = RequestDolbyVisionMatching.Match(request_job, search_job, name);
-        var audio_codec_match = RequestAudioCodecMatching.Match(request_job, search_job, name);
-        var video_codec_match = RequestVideoCodecMatching.Match(request_job, search_job, name);
-        var riptype_match = RequestRipTypeMatching.Match(request_job, search_job, name);
-        var release_group_match = RequestReleaseGroupMatching.Match(request_job, search_job, name);
+        var series_match = SeriesMatching.Match(request_job, search_job, name);
+        var language_match = LanguageMatching.Match(request_job, search_job, name);
+        var release_name_match = ReleaseNameMatching.Match(request_job, search_job, name);
+        var resolution_match = ResolutionMatching.Match(request_job, search_job, name);
+        var high_dynamic_range_match = HighDynamicRangeMatching.Match(request_job, search_job, name);
+        var dolby_vision_match = DolbyVisionMatching.Match(request_job, search_job, name);
+        var audio_codec_match = AudioCodecMatching.Match(request_job, search_job, name);
+        var video_codec_match = VideoCodecMatching.Match(request_job, search_job, name);
+        var riptype_match = RipTypeMatching.Match(request_job, search_job, name);
+        var release_group_match = ReleaseGroupMatching.Match(request_job, search_job, name);
 
         var decision_logic_matched = new DecisionLogicMatchedItem
         {
@@ -91,15 +92,15 @@ public static class RequestMatching
         }
         var name = job.name.ToLowerInvariant();
 
-        var language_match = RequestLanguageMatching.Match(request_job, search_job, name);
-        var release_name_match = RequestReleaseNameMatching.Match(request_job, search_job, name);
-        var resolution_match = RequestResolutionMatching.Match(request_job, search_job, name);
-        var high_dynamic_range_match = RequestHighDynamicRangeMatching.Match(request_job, search_job, name);
-        var dolby_vision_match = RequestDolbyVisionMatching.Match(request_job, search_job, name);
-        var audio_codec_match = RequestAudioCodecMatching.Match(request_job, search_job, name);
-        var video_codec_match = RequestVideoCodecMatching.Match(request_job, search_job, name);
-        var riptype_match = RequestRipTypeMatching.Match(request_job, search_job, name);
-        var release_group_match = RequestReleaseGroupMatching.Match(request_job, search_job, name);
+        var language_match = LanguageMatching.Match(request_job, search_job, name);
+        var release_name_match = ReleaseNameMatching.Match(request_job, search_job, name);
+        var resolution_match = ResolutionMatching.Match(request_job, search_job, name);
+        var high_dynamic_range_match = HighDynamicRangeMatching.Match(request_job, search_job, name);
+        var dolby_vision_match = DolbyVisionMatching.Match(request_job, search_job, name);
+        var audio_codec_match = AudioCodecMatching.Match(request_job, search_job, name);
+        var video_codec_match = VideoCodecMatching.Match(request_job, search_job, name);
+        var riptype_match = RipTypeMatching.Match(request_job, search_job, name);
+        var release_group_match = ReleaseGroupMatching.Match(request_job, search_job, name);
 
         var decision_logic_matched = new DecisionLogicMatchedItem
         {

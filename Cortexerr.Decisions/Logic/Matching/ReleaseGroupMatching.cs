@@ -5,7 +5,7 @@ using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
 
-public static class RequestReleaseGroupMatching
+public static class ReleaseGroupMatching
 {
     public static string? Match(RequestJob request_job, IndexerSearchJob search_job, string name)
     {

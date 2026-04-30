@@ -11,7 +11,8 @@ public static class RipTypeFiltering
         if (minimum_riptype > 0)
         {
             var results = decision_logic_matching_job.results.Where(
-                    job => (int)job.matched.riptype.Value >= minimum_riptype).ToList();
+                    job => job.matched.riptype != null ? (int)job.matched.riptype >= minimum_riptype
+                    : job.matched.riptype == null && Config.ARGS.allow_unknown_riptypes ? true : false).ToList();
             return new DecisionLogicMatchingJob
             {
                 request_job = decision_logic_matching_job.request_job,

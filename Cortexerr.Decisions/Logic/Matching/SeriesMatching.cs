@@ -11,21 +11,21 @@ public enum PackType
     FULL,
 }
 
-public sealed record RequestSeriesMatchingResults
+public sealed record SeriesMatchingResults
 {
     public required int[] seasons { get; init; }
     public required int[] episodes { get; init; }
     public PackType? pack { get; set; }
 }
 
-public static class RequestSeriesMatching
+public static class SeriesMatching
 {
-    public static RequestSeriesMatchingResults Match(RequestJob request_job, IndexerSearchJob search_job, string name)
+    public static SeriesMatchingResults Match(RequestJob request_job, IndexerSearchJob search_job, string name)
     {
-        var pack_keyword_match = @"\b(complete|full\s*series|the\s*complete\s*series|complete\s*series|complete\s*season)\b";
+        var pack_keyword_match = @"\b(complete|full[\ \:\-]?series|the[\ \:\-]?complete[\ \:\-]?series|complete[\ \:\-]?series|complete[\ \:\-]?season)\b";
         var pack_match = Regex.IsMatch(name, pack_keyword_match);
 
-        var ep_season_regex = @"(?:s(\d{1,2})|season\s*(\d+))(?:e(\d{1,2}))?|(\d{1,2})x(\d{1,2})|episodes?\s*(\d+)|ep\.?\s*(\d+)|e(\d{1,2})";
+        var ep_season_regex = @"(?:s(\d{1,2})|season[\ \:\-]?(\d+))(?:e(\d{1,2}))?|(\d{1,2})x(\d{1,2})|episode[\ \:\-]?(\d+)|ep[\ \:\-]?(\d+)|e(\d{1,2})";
         var main_match = Regex.Matches(name, ep_season_regex);
 
         var seasons = new List<int>();
@@ -50,7 +50,7 @@ public static class RequestSeriesMatching
                 seasons.Add(season_number);
             }
         }
-        return new RequestSeriesMatchingResults
+        return new SeriesMatchingResults
         {
             seasons = seasons.ToArray(),
             episodes = episodes.ToArray(),

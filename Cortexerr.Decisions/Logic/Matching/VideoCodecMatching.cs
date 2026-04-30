@@ -5,11 +5,11 @@ using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
 
-public partial class RequestVideoCodecMatching
+public partial class VideoCodecMatching
 {
-    [GeneratedRegex(@"\b(x265|h[\. \-]?265|hevc)\b")]
+    [GeneratedRegex(@"\b(x265|h[\ \:\-]?265|hevc)\b")]
     private static partial Regex H265Regex();
-    [GeneratedRegex(@"\b(x264|h[\. \-]?264|avc)\b")]
+    [GeneratedRegex(@"\b(x264|h[\ \:\-]?264|avc)\b")]
     private static partial Regex H264Regex();
     [GeneratedRegex(@"\bav1\b")]
     private static partial Regex Av1Regex();
@@ -17,11 +17,11 @@ public partial class RequestVideoCodecMatching
     private static partial Regex XvidRegex();
     [GeneratedRegex(@"\bdivx\b")]
     private static partial Regex DivxRegex();
-    [GeneratedRegex(@"\b(mpeg[\. \-]?2|mpeg2)\b")]
+    [GeneratedRegex(@"\b(mpeg[\ \:\-]?2)\b")]
     private static partial Regex Mpeg2Regex();
-    [GeneratedRegex(@"\b(mpeg[\. \-]?4|mpeg4)\b")]
+    [GeneratedRegex(@"\b(mpeg[\ \:\-]?4)\b")]
     private static partial Regex Mpeg4Regex();
-    [GeneratedRegex(@"\bvc[\. \-]?1\b")]
+    [GeneratedRegex(@"\bvc[\ \:\-]?1\b")]
     private static partial Regex Vc1Regex();
 
     public static VideoCodec? Match(RequestJob request_job, IndexerSearchJob search_job, string name)
