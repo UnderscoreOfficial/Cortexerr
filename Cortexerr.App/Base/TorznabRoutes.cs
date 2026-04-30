@@ -1,9 +1,11 @@
 using System.Text;
+using System.Text.Json;
 using System.Web;
 using System.Xml;
 using Cortexerr.Core.Arrs;
 using Cortexerr.Core.Configuration;
 using Cortexerr.Core.Errors;
+using Cortexerr.Core.Ingest;
 using Cortexerr.Core.Utilities;
 using MonoTorrent.BEncoding;
 
@@ -310,6 +312,10 @@ public static class TorznabRoutes
 
   public static IResult IndexDownload(EncodedTorrent torrent)
   {
+    int? episode = torrent.episode != null ? torrent.episode : torrent.ep;
+
+    Console.WriteLine("TORRENT: ->");
+    Console.WriteLine(JsonSerializer.Serialize(torrent));
     var info = new BEncodedDictionary
     {
       ["name"] = new BEncodedString(torrent.name),
@@ -323,7 +329,7 @@ public static class TorznabRoutes
     if (torrent.tvdbid.HasValue) info["tvdbid"] = new BEncodedNumber(torrent.tvdbid.Value);
     if (torrent.tmdbid.HasValue) info["tmdbid"] = new BEncodedNumber(torrent.tmdbid.Value);
     if (torrent.season.HasValue) info["season"] = new BEncodedNumber(torrent.season.Value);
-    if (torrent.episode.HasValue) info["episode"] = new BEncodedNumber(torrent.episode.Value);
+    if (episode.HasValue) info["episode"] = new BEncodedNumber(episode.Value);
 
     var root = new BEncodedDictionary
     {
@@ -341,6 +347,12 @@ public static class TorznabRoutes
     });
     app.MapGet("/indexer/api", async (string? apikey, string? t, int? tvdbid, int? tmdbid, int? season, int? ep) =>
     {
+      Console.WriteLine("season" + season);
+      Console.WriteLine("ep" + ep);
+      Console.WriteLine("tvdbid" + tvdbid);
+      Console.WriteLine("tmdbid" + tmdbid);
+      Console.WriteLine("apikey" + apikey);
+      Console.WriteLine("t" + t);
       if (apikey != Config.ARGS.host_api_key)
         return Results.Unauthorized();
       if (t == "caps")

@@ -5,7 +5,7 @@ using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
 
-public partial class RequestResolutionMatching
+public partial class ResolutionMatching
 {
     [GeneratedRegex(@"\b(480p|sd)\b")]
     private static partial Regex R480pRegex();
@@ -13,9 +13,9 @@ public partial class RequestResolutionMatching
     private static partial Regex R576pRegex();
     [GeneratedRegex(@"\b(720p|720i|hd)\b")]
     private static partial Regex R720pRegex();
-    [GeneratedRegex(@"\b(1080p|1080i|fhd|full\s*hd)\b")]
+    [GeneratedRegex(@"\b(1080p|1080i|fhd|full[\ \:\-]?hd)\b")]
     private static partial Regex R1080pRegex();
-    [GeneratedRegex(@"\b(2160p|4k|uhd|ultra\s*hd)\b")]
+    [GeneratedRegex(@"\b(2160p|4k|uhd|ultra[\ \:\-]?hd)\b")]
     private static partial Regex R2160pRegex();
 
     public static Resolution? Match(RequestJob request_job, IndexerSearchJob search_job, string name)

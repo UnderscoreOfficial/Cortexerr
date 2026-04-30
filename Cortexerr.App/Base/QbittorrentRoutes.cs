@@ -3,15 +3,11 @@ using System.Text.Json;
 using Cortexerr.Core.Arrs;
 using Cortexerr.Core.Configuration;
 using Cortexerr.Core.Ingest;
+using Cortexerr.Core.Logging;
 using Cortexerr.Core.Utilities;
 using MonoTorrent.BEncoding;
 
 namespace Cortexerr.App.Base;
-
-public static class Requested
-{
-    public static Dictionary<string, Ingest> ingest = new();
-}
 
 public record EncodedTorrent(
     string hash,
@@ -20,6 +16,7 @@ public record EncodedTorrent(
     int? tmdbid,
     int? season,
     int? episode,
+    int? ep,
     string name,
     string release,
     long length
@@ -79,6 +76,14 @@ public static class QbittorrentRoutes
         Ingest? ingest = null;
         if (tvdbid.HasValue)
         {
+
+            Console.WriteLine("season:" + season);
+            Console.WriteLine("episode:" + episode);
+            Console.WriteLine("tvdbid:" + tvdbid);
+            Console.WriteLine("id:" + id);
+            Console.WriteLine("hash:" + hash);
+            Console.WriteLine("info:" + info);
+
             var series = await Sonarr.Series(tvdbid.Value);
             if (series.error != null)
                 return Results.BadRequest("(QbittorrentRoutes|TorrentAdd) Could not fetch series data");
@@ -92,8 +97,6 @@ public static class QbittorrentRoutes
                 progress = 0,
                 download_speed = 0,
                 state = TorrentState.DOWNLOADING,
-                save_path = "/",
-                // content_path
                 eta = 0,
                 completed = false
             };
@@ -134,8 +137,6 @@ public static class QbittorrentRoutes
                 progress = 0,
                 download_speed = 0,
                 state = TorrentState.DOWNLOADING,
-                save_path = "/",
-                // content_path
                 eta = 0,
                 completed = false
             };
@@ -160,8 +161,61 @@ public static class QbittorrentRoutes
         }
         if (ingest != null)
         {
+            if (ingest.sonarr?.request?.tvdb_id == null &&
+                    ingest.radarr?.request.tmdb_id == null)
+            {
+                Logger.Log.Information($"(QbittorrentRoutes|TorrentAdd) Skipping request (tvdb_id, tmdb_id) are both missing");
+                return Results.Ok();
+            }
+            foreach (var requested in Requested.ingest)
+            {
+                var sonarr = requested.Value.sonarr?.request;
+                var radarr = requested.Value.radarr?.request;
+                if (sonarr != null)
+                {
+                    // missing season
+                    if (sonarr.tvdb_id == ingest.sonarr?.request?.tvdb_id &&
+                            ingest.sonarr.request.season == null &&
+                            ingest.sonarr.request.episode == null)
+                    {
+                        Logger.Log.Information($"(QbittorrentRoutes|TorrentAdd) Skipping request (tvdb_id: {sonarr.tvdb_id}, season: {sonarr.season}, episode: {sonarr.episode}) season required");
+                        return Results.Ok();
+                    }
+                    // verify not aleady added
+                    if (sonarr.tvdb_id == ingest.sonarr?.request?.tvdb_id &&
+                            sonarr.season == ingest.sonarr.request.season &&
+                            sonarr.episode == ingest.sonarr.request.episode)
+                    {
+                        Logger.Log.Information($"(QbittorrentRoutes|TorrentAdd) Skipping request (tvdb_id: {sonarr.tvdb_id}, season: {sonarr.season}, episode: {sonarr.episode}) already exists");
+                        return Results.Ok();
+                    }
+                    // temporarly ignores full season requests. used for when episodes are requested
+                    // as sonarr will sometimes send a full season request even tho only an ep was requested
+                    // ie. season 1 ep 1 requested sonarr might also send season 1 ep null requested we drop
+                    // any requests that match the same tvdbid & season and ep null
+                    if (sonarr.tvdb_id == ingest.sonarr?.request?.tvdb_id &&
+                            sonarr.season == ingest.sonarr.request.season &&
+                            ingest.sonarr.request.episode == null)
+                    {
+                        Logger.Log.Information($"(QbittorrentRoutes|TorrentAdd) Skipping request (tvdb_id: {sonarr.tvdb_id}, season: {sonarr.season}, episode: null) trying to add a whole season for a series that previously requested specific episodes");
+                        return Results.Ok();
+                    }
+                }
+                if (radarr != null)
+                {
+                    if (radarr.tmdb_id == ingest.radarr?.request?.tmdb_id)
+                    {
+                        Logger.Log.Information($"(QbittorrentRoutes|TorrentAdd) Skipping request (tmdb_id: {radarr.tmdb_id}) already exists");
+                        return Results.Ok();
+                    }
+                }
+            }
             Requested.ingest.Add(ingest.hash, ingest);
-            Console.WriteLine(JsonSerializer.Serialize(ingest));
+            Console.WriteLine("SONARR_REQUEST");
+            Logger.Log.Information(JsonSerializer.Serialize(JsonSerializer.Serialize(Requested.ingest.Select(i => i.Value.sonarr?.request))));
+            Logger.Log.Information(JsonSerializer.Serialize(ingest.sonarr?.request));
+            Logger.Log.Information("RADARR_REQUEST");
+            Logger.Log.Information(JsonSerializer.Serialize(ingest.radarr?.request));
             State.consumer.RequestHandler(ingest);
             return Results.Ok();
         }
@@ -240,7 +294,7 @@ public static class QbittorrentRoutes
                     hash = ingest.hash,
                     progress = ingest.status.progress,
                     dlspeed = ingest.status.download_speed,
-                    state = ingest.status.state,
+                    state = TorrentStateParser.String(ingest.status.state),
                     category = category,
                     save_path = ingest.status.save_path,
                     content_path = ingest.status.content_path,

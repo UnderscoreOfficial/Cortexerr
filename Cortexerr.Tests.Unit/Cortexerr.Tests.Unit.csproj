@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cortexerr.Core\Cortexerr.Core.csproj" />
+    <ProjectReference Include="..\Cortexerr.Extended\Cortexerr.Extended.csproj" />
+    <ProjectReference Include="..\Cortexerr.Decisions\Cortexerr.Decisions.csproj" />
   </ItemGroup>
 
 </Project>

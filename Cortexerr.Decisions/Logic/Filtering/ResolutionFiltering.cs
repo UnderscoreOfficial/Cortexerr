@@ -10,8 +10,8 @@ public static class ResolutionFiltering
         var minimum_resolution = (int)Config.ARGS.minimum_resolution;
         if (minimum_resolution > 0)
         {
-            var results = decision_logic_matching_job.results.Where(
-                    job => (int)job.matched.resolution.Value >= minimum_resolution).ToList();
+            var results = decision_logic_matching_job.results.Where(job =>
+                    job.matched.resolution != null ? (int)job.matched.resolution >= minimum_resolution : false).ToList();
             return new DecisionLogicMatchingJob
             {
                 request_job = decision_logic_matching_job.request_job,

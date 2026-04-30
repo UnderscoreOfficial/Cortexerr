@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Cortexerr.Decisions.Logic.Matching;
 
 namespace Cortexerr.Decisions.Logic.Filtering;
@@ -27,7 +28,8 @@ public static class RequestFiltering
         }
         // should allow multiple episodes with invalid_episodes to be considered as pack episodes
         // while allowing all without any ep though only passing with 1 ep and its wrong
-        if (episodes_length == 1 && invalid_episode) continue;
+        if (episodes_length == 1 && invalid_episode)
+          continue;
 
         var target_season = decision_logic_matching_job.search_job.target.season;
         var seasons_length = seasons?.Length ?? 0;
@@ -37,6 +39,7 @@ public static class RequestFiltering
         }
 
         var pack = job.matched.series?.pack;
+
 
         // pack states have to be somewhat strict, for season packs it must always include the season irrelevant of if pack is true or not
         if (valid_season && episodes_length == 0)
@@ -57,18 +60,35 @@ public static class RequestFiltering
 
         // temporary to avoid non default languges need to decide how to target this ideally config option array to enable extra languages ideally 
         // it would just share both for subs and audio.
-        if (job.matched.languages?.Length > 0) continue;
-
-        if (job.matched.fuzzy_name.token_set_ratio >= 85 && job.matched.fuzzy_name.ratio >= 60)
+        if (job.matched.languages?.Length > 0)
         {
-          if (job.matched.fuzzy_name.token_set_ratio_with_year >= 95 && job.matched.fuzzy_name.ratio_with_year >= 75)
-          {
-            results.Add(job);
-          }
+          continue;
         }
-        else if (job.matched.fuzzy_name.token_set_ratio >= 85)
+
+
+        // uggh temporarly ignore way worse false positives need to rethink a better aproach 
+        // if (job.matched.fuzzy_name.token_set_ratio >= 85 && job.matched.fuzzy_name.ratio >= 60)
+        // {
+        //   if (job.matched.fuzzy_name.token_set_ratio_with_year >= 95 && job.matched.fuzzy_name.ratio_with_year >= 75)
+        //   {
+        //     results.Add(job);
+        //   }
+        //   else
+        //   {
+        //     Console.WriteLine("Not added yr: " + job.item.name);
+        //     Console.WriteLine("token: " + job.matched.fuzzy_name.token_set_ratio);
+        //     Console.WriteLine("ratio: " + job.matched.fuzzy_name.ratio);
+        //     Console.WriteLine("token_year: " + job.matched.fuzzy_name.token_set_ratio_with_year);
+        //     Console.WriteLine("ratio_year: " + job.matched.fuzzy_name.ratio_with_year);
+        //   }
+        // }
+        if (job.matched.fuzzy_name.token_set_ratio >= 85)
         {
           results.Add(job);
+        }
+        else
+        {
+          Console.WriteLine("Not added: " + job.item.name);
         }
       }
       if (radarr != null)

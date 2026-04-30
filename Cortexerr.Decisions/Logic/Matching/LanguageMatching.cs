@@ -4,7 +4,7 @@ using Cortexerr.Extended.Indexer;
 
 namespace Cortexerr.Decisions.Logic.Matching;
 
-public static class RequestLanguageMatching
+public static class LanguageMatching
 {
     public static string[] Match(RequestJob request_job, IndexerSearchJob search_job, string name)
     {

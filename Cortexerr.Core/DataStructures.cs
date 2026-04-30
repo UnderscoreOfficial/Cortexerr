@@ -8,8 +8,8 @@ public enum RipType
     SDTV,
     HDTV,
     WEB_RIP,
-    WEB_DL,
     BLURAY,
+    WEB_DL,
     REMUX
 }
 
@@ -24,14 +24,14 @@ public enum Resolution
 
 public enum VideoCodec
 {
-    H265,
-    H264,
-    AV1,
-    XVID,
-    DIVX,
     MPEG2,
+    DIVX,
+    XVID,
     MPEG4,
-    VC1
+    H264,
+    VC1,
+    H265,
+    AV1
 }
 
 public enum AudioCodec

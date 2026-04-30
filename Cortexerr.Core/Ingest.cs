@@ -50,6 +50,28 @@ public static class TorrentStateParser
         "moving" => TorrentState.MOVING,
         _ => TorrentState.UNKNOWN
     };
+    public static string String(TorrentState value) => value switch
+    {
+        TorrentState.ERROR => "error",
+        TorrentState.MISSING_FILES => "missingFiles",
+        TorrentState.UPLOADING => "uploading",
+        TorrentState.PAUSED_UP => "pausedUP",
+        TorrentState.QUEUED_UP => "queuedUP",
+        TorrentState.STALLED_UP => "stalledUP",
+        TorrentState.CHECKING_UP => "checkingUP",
+        TorrentState.FORCED_UP => "forcedUP",
+        TorrentState.ALLOCATING => "allocating",
+        TorrentState.DOWNLOADING => "downloading",
+        TorrentState.META_DL => "metaDL",
+        TorrentState.PAUSED_DL => "pausedDL",
+        TorrentState.QUEUED_DL => "queuedDL",
+        TorrentState.STALLED_DL => "stalledDL",
+        TorrentState.CHECKING_DL => "checkingDL",
+        TorrentState.FORCED_DL => "forcedDL",
+        TorrentState.CHECKING_RESUME_DATA => "checkingResumeData",
+        TorrentState.MOVING => "moving",
+        _ => "unknown"
+    };
 }
 public sealed class TorrentStateConverter : JsonConverter<TorrentState>
 {
@@ -99,7 +121,7 @@ public sealed record IngestStatus
     public int download_speed { get; set; }
     [JsonConverter(typeof(TorrentStateConverter))]
     public TorrentState state { get; set; }
-    public required string save_path { get; set; }
+    public string? save_path { get; set; }
     public string? content_path { get; set; }
     public int eta { get; set; }
     public bool completed { get; set; }
@@ -113,3 +135,7 @@ public sealed record Ingest
     public required IngestStatus status { get; init; }
 }
 
+public static class Requested
+{
+    public static Dictionary<string, Ingest> ingest = new();
+}
