@@ -67,11 +67,10 @@ public static class QbittorrentRoutes
 
         if (string.IsNullOrWhiteSpace(hash))
             return Results.BadRequest("(QbittorrentRoutes|TorrentAdd) Invalid hash");
-        if (string.IsNullOrWhiteSpace(release))
+        if (string.IsNullOrWhiteSpace(release) && tvdbid.HasValue)
             return Results.BadRequest("(QbittorrentRoutes|TorrentAdd) Invalid release");
         if (!id.HasValue)
             return Results.BadRequest("(QbittorrentRoutes|TorrentAdd) Invalid id");
-
 
         Ingest? ingest = null;
         if (tvdbid.HasValue)
@@ -158,6 +157,7 @@ public static class QbittorrentRoutes
                 radarr = ingest_radarr,
                 status = status
             };
+            Console.WriteLine(JsonSerializer.Serialize(ingest_radarr_request));
         }
         if (ingest != null)
         {
@@ -215,6 +215,7 @@ public static class QbittorrentRoutes
             Logger.Log.Information(JsonSerializer.Serialize(JsonSerializer.Serialize(Requested.ingest.Select(i => i.Value.sonarr?.request))));
             Logger.Log.Information(JsonSerializer.Serialize(ingest.sonarr?.request));
             Logger.Log.Information("RADARR_REQUEST");
+            Logger.Log.Information(JsonSerializer.Serialize(JsonSerializer.Serialize(Requested.ingest.Select(i => i.Value.radarr?.request))));
             Logger.Log.Information(JsonSerializer.Serialize(ingest.radarr?.request));
             State.consumer.RequestHandler(ingest);
             return Results.Ok();
@@ -250,6 +251,7 @@ public static class QbittorrentRoutes
         });
         app.MapPost("/downloader/api/v2/torrents/add", async (HttpRequest request) =>
         {
+            Console.WriteLine(request);
             var sid = request.Cookies["SID"];
             if (sid != _sid_cookie || String.IsNullOrEmpty(sid))
                 return Results.StatusCode(StatusCodes.Status403Forbidden);

@@ -148,11 +148,11 @@ public static class TorznabRoutes
     return item;
   }
 
-  public static XmlElement BuildMovieItem(XmlDocument xml, RadarrResponseMovie movie, string release)
+  public static XmlElement BuildMovieItem(XmlDocument xml, RadarrResponseMovie movie, string release_name, string release)
   {
-    var formated_release = release.Length > 0 ? $".{release}" : "";
-    var formatted_name = $"{movie.sort_title?.Replace(" ", ".")}{formated_release}";
-    var release_name = $"{formatted_name}.${movie.year}.1080p.WEB-DL.x264";
+    // var formated_release = release.Length > 0 ? $".{release}" : "";
+    // var formatted_name = $"{movie.sort_title?.Replace(" ", ".")}{formated_release}";
+    // var release_name = $"{formatted_name}.{movie.year}.1080p.WEB-DL.x264";
 
     string hash;
     do
@@ -249,7 +249,19 @@ public static class TorznabRoutes
       var xml = SearchResultsTemplate();
       var channel = xml.SelectSingleNode("/rss/channel");
       if (channel == null) return Results.InternalServerError();
-      channel.AppendChild(BuildMovieItem(xml, movie.data, ""));
+
+      var release = "";
+      var formatted_name = $"{movie.data.sort_title?.Replace(" ", ".")}{release}";
+      var release_name = $"{formatted_name}.{movie.data.year}.1080p.WEB-DL.x264";
+      channel.AppendChild(BuildMovieItem(xml, movie.data, release_name, release));
+
+      release_name = $"{formatted_name}.1080p.WEB-DL.x264";
+      channel.AppendChild(BuildMovieItem(xml, movie.data, release_name, release));
+
+      formatted_name = $"{movie.data.original_title?.Replace(" ", ".")}{release}";
+      release_name = $"{formatted_name}.{movie.data.year}.1080p.WEB-DL.x264";
+      channel.AppendChild(BuildMovieItem(xml, movie.data, release_name, release));
+
       var string_writer = new StringWriter();
       xml.Save(string_writer);
       return Results.Content(string_writer.ToString(), "application/xml", Encoding.UTF8, 200);
