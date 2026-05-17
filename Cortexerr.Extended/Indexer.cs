@@ -292,25 +292,42 @@ public sealed class Indexer
 
     async private Task<HandleResponse<object>> MovieSearch(RadarrResponseMovie radarr, int tmdb_id, string? target = null)
     {
-        var jackett_query = radarr.sort_title?.Replace("-", " ") ?? "";
-        if (string.IsNullOrWhiteSpace(target)) jackett_query = $"{jackett_query} {target}";
+        HandleResponse<JackettIndexerSearchResults>? jackett = null;
+        if (!Config.ARGS.jackett_enabled && !Config.ARGS.hydra_enabled)
+            Response.Error(ErrorCode.DISABLED, "(Indexer|MovieSearch) Both Jackett & NzbHydra disabled can't preform any searches");
 
-        var jackett = await Jackett.MovieSearch(jackett_query, tmdb_id);
-        var hydra = await NzbHydra.MovieSearch(tmdb_id, target);
-        if (jackett.data != null)
+        if (Config.ARGS.jackett_enabled)
         {
-            jackett_results.Add(jackett.data);
-        }
-        if (hydra.data != null)
-        {
-            hydra_results.Add(hydra.data);
+            var jackett_query = radarr.sort_title?.Replace("-", " ") ?? "";
+            if (string.IsNullOrWhiteSpace(target)) jackett_query = $"{jackett_query} {target}";
+            if (jackett_results.Count == 0)
+            {
+                jackett = await Jackett.MovieSearch(jackett_query, tmdb_id);
+                if (jackett.data != null)
+                {
+                    jackett_results.Add(jackett.data);
+                }
+            }
         }
 
-        if (jackett.error != null && hydra.error != null)
+        HandleResponse<NzbHydraSearchResults>? hydra = null;
+        if (Config.ARGS.hydra_enabled)
         {
+            hydra = await NzbHydra.MovieSearch(tmdb_id, target);
+            if (hydra.data != null)
+            {
+                hydra_results.Add(hydra.data);
+            }
+        }
+
+        if (jackett?.error != null && hydra?.error != null)
+        {
+            Logger.Log.Error($"[{jackett.error.code}] {jackett.error.message}");
+            Logger.Log.Error($"[{hydra.error.code}] {hydra.error.message}");
             return
                 Response.Error(ErrorCode.UNEXPECTED_ERROR, "(Indexer|MovieSearch) Both Jackett & NzbHydra returned unexpected errors");
         }
+
         return Response.Success();
     }
 

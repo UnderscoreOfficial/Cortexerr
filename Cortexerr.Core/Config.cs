@@ -60,6 +60,7 @@ public sealed record ConfigArgs(
         string host_api_key,
         string[] release_groups, // defined as an array of groups eg. [group1, group2]  
         string[] filtered_keywords, // removes items containing specific keyword strings
+        bool search_release_groups = true, // enables or disables seperate searching of all release groups, can get expensive.
 
         // TMP remote move
         string tmp_move_remote_ip = "",

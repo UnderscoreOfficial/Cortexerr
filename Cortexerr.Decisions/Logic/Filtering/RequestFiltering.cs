@@ -93,21 +93,22 @@ public static class RequestFiltering
       }
       if (radarr != null)
       {
-        var sort_title = radarr.movie.sort_title;
+        var sort_title = radarr.movie.original_title?.ToLower();
         if (sort_title == null) continue;
 
         // temporary to avoid non default languges need to decide how to target this ideally config option array to enable extra languages ideally 
         // it would just share both for subs and audio.
         if (job.matched.languages?.Length > 0) continue;
 
-        if (job.matched.fuzzy_name.token_set_ratio >= 85 && job.matched.fuzzy_name.ratio >= 60)
-        {
-          if (job.matched.fuzzy_name.token_set_ratio_with_year >= 95 && job.matched.fuzzy_name.ratio_with_year >= 75)
-          {
-            results.Add(job);
-          }
-        }
-        else if (job.matched.fuzzy_name.token_set_ratio >= 85)
+        // wayy to many false positives
+        // if (job.matched.fuzzy_name.token_set_ratio >= 85 && job.matched.fuzzy_name.ratio >= 60)
+        // {
+        //   if (job.matched.fuzzy_name.token_set_ratio_with_year >= 95 && job.matched.fuzzy_name.ratio_with_year >= 75)
+        //   {
+        //     results.Add(job);
+        //   }
+        // }
+        if (job.matched.fuzzy_name.token_set_ratio >= 85)
         {
           results.Add(job);
         }
